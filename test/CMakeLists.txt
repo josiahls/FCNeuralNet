@@ -34,6 +34,27 @@ include_directories(${gtest_SOURCE_DIR}/include/)
 endif()
 
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(test Matrix2dTest.cpp LayerTest.cpp ../src/layers/Layer.cpp ../src/layers/Layer.h ../src/linearMath/MatrixOp.h ../src/linearMath/Matrix2dv2.h)
+add_executable(test Matrix2dTest.cpp LayerTest.cpp ../src/layers/Layer.cpp ../src/layers/Layer.h ../src/linearMath/MatrixOp.h ../src/linearMath/Matrix2dv2.h OpenCVUnitTest.cpp)
 target_link_libraries(test gtest gtest_main)
+
 #add_test(NAME example_test COMMAND example)
+# Enable C++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+# Find OpenCV, you may need to set OpenCV_DIR variable
+# to the absolute path to the directory containing OpenCVConfig.cmake file
+# via the command line or GUI
+find_package(OpenCV REQUIRED)
+
+# If the package has been found, several variables will
+# be set, you can find the full list with descriptions
+# in the OpenCVConfig.cmake file.
+# Print some message showing some of them
+message(STATUS "OpenCV library status:")
+message(STATUS "    config: ${OpenCV_DIR}")
+message(STATUS "    version: ${OpenCV_VERSION}")
+message(STATUS "    libraries: ${OpenCV_LIBS}")
+message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
+
+# Link your application with OpenCV libraries
+target_link_libraries(test ${OpenCV_LIBS})

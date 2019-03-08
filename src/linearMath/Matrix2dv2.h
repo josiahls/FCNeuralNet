@@ -30,17 +30,35 @@ struct Matrix2dv2 {
         this->m = std::vector<T>(this->size, defaultValue);
     }
 
+    Matrix2dv2(const Matrix2dv2<T> &copyMatrix) {
+        this->nrows = copyMatrix.nrows;
+        this->ncols = copyMatrix.ncols;
+        this->size = copyMatrix.nrows * copyMatrix.ncols;
+        this->defaultValue = copyMatrix.defaultValue;
+        // Init the matrix
+        this->m = std::vector<T>(size, copyMatrix.defaultValue);
+        // Perform full value by value copy
+        std::vector<Matrix1d<T>> tempW2 = copyMatrix.m;
+        for(int row = 0; row < nrows; row++) {
+            for (int col = 0; col < ncols; col++) {
+                this->m[row][col] = tempW2[row][col];
+            }
+        }
+    }
+
     class Proxy {
     public:
         int row;
+        int col;
         Matrix2dv2<T>& matrix;
 
         Proxy(int row, Matrix2dv2<T>& m) : row(row), matrix(m) {}
 
-        T operator[] (int col) {
+        Proxy& operator[] (int col) {
             if (col >= matrix.ncols) {
                 throw std::out_of_range("There you are trying to access more columns than there actually exist");
             }
+            this->col = col;
             return matrix.m.at(row * matrix.ncols + col);
         }
     };
@@ -51,6 +69,10 @@ struct Matrix2dv2 {
         }
         return Proxy(row, *this);
     }
+
+//    void set(int row, int col) {
+//        this->m[row * this->ncols + col]
+//    }
 };
 
 #endif //NEURALNETDEMO_MATRIX2DV2_H
