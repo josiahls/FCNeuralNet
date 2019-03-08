@@ -4,75 +4,93 @@
 
 #include <gtest/gtest.h>
 #include <cmath>
+#include <opencv/cxmisc.h>
 #include "../src/layers/Layer.h"
+
+
+TEST(Layer, checkForward) {
+    Layer layer = Layer(3, 2, 0, "middle");
+    layer.w = (cv::Mat_<float>(2, 3) << -0.90937, 1.02899, 0.57227, 0.73312, -0.21868, 0.24272);
+    cv::Mat testMat = (cv::Mat_<float>(3, 2) << 0.3, 0.5, 0.5, 0.1, 1, 0.2);
+    cv::Mat result = layer.getForwardOutput(testMat);
+
+    ASSERT_NEAR(result.at<float>(0,0), -0.06604, 0.001);
+    ASSERT_NEAR(result.at<float>(0,1), 0.45497, 0.001);
+    ASSERT_NEAR(result.at<float>(0,2), 0.47982, 0.001);
+    ASSERT_NEAR(result.at<float>(1,0), -0.18117, 0.001);
+    ASSERT_NEAR(result.at<float>(1,1), 0.5257, 0.001);
+    ASSERT_NEAR(result.at<float>(1,2), 0.48364, 0.001);
+    ASSERT_NEAR(result.at<float>(2,0), -0.2617, 0.001);
+    ASSERT_NEAR(result.at<float>(2,1), 0.63205, 0.001);
+    ASSERT_NEAR(result.at<float>(2,2), 0.55182, 0.001);
+}
+
+TEST(Layer, checkActivationSigmoidPrime) {
+    Layer layer = Layer(5, 5, 0, "middle");
+    cv::Mat testMat = (cv::Mat_<float>(3, 1) << -0.2810396, -0.407007, -0.405505);
+    cv::Mat result = layer.getActivationSigmoidPrime(testMat);
+
+    ASSERT_NEAR(result.at<float>(0,0), 0.245, 0.001);
+    ASSERT_NEAR(result.at<float>(1,0), 0.239, 0.001);
+    ASSERT_NEAR(result.at<float>(2,0), 0.239, 0.001);
+}
+
+TEST(Layer, checkActivationSigmoid) {
+    Layer layer = Layer(5, 5, 0, "middle");
+    cv::Mat testMat = (cv::Mat_<float>(3, 2) << 0.3, 0.5, 0.5, 0.1, 1, 0.2);
+    cv::Mat result = layer.getActivationSigmoid(testMat);
+
+    ASSERT_NEAR(result.at<float>(0,0), 0.57444, 0.001);
+    ASSERT_NEAR(result.at<float>(0,1), 0.62245, 0.001);
+    ASSERT_NEAR(result.at<float>(1,0), 0.62245, 0.001);
+    ASSERT_NEAR(result.at<float>(1,1), 0.52497, 0.001);
+    ASSERT_NEAR(result.at<float>(2,0), 0.73105, 0.001);
+    ASSERT_NEAR(result.at<float>(2,1), 0.54983, 0.001);
+}
 
 TEST(Layer, checkFieldInitsWeights) {
     // Init a small layer with a 2d Matrix with a 0 seed
     // so that we get the same behavior every time.
-    Layer layerThing = Layer(5, 5, 0, "zeros");
-    ASSERT_EQ(layerThing.a[0][0], 0);
-    ASSERT_EQ(layerThing.z[0][0], 0);
-    ASSERT_EQ(layerThing.gradientW[0][0], 0);
+    Layer layer = Layer(5, 5, 0, "zeros");
+    ASSERT_EQ(layer.a.at<int>(0,0), 0);
+    ASSERT_EQ(layer.z.at<int>(0,0), 0);
+    ASSERT_EQ(layer.gradientW.at<int>(0,0), 0);
 }
 
-TEST(Layer, checkFloatGlorotWeights) {
-    // Init a small layer with a 2d Matrix with a 0 seed
-    // so that we get the same behavior every time.
-    Layer layerThing = Layer(5, 5, 0, "glorot");
-
-    ASSERT_EQ(layerThing.unwrap().size(),
-              layerThing.size*layerThing.nextLayerSize) << "The layer's unwrap method does not match the expected size.";
-
-    std::vector<float> weights = layerThing.unwrap();
-
-    float limit = sqrt(6.f / layerThing.w.size);
-    // Check that the values all center around 0 where the limit is supposed to be
-    // symmetric
-    for (auto& item : weights) {
-        ASSERT_NEAR(item, 0, limit);
-    }
+TEST(Layer, checkFieldInitsWeightsRandom) {
+    Layer layer = Layer(5, 5, 0, "random");
+    cv::parallel_for_(cv::Range(0, layer.w.rows*layer.w.cols), [&](const cv::Range& range){
+        for (int r = range.start; r < range.end; r++)
+        {
+            int i = r / layer.w.cols;
+            int j = r % layer.w.cols;
+            ASSERT_NEAR(layer.w.ptr<float>(i)[j], .5, .5);
+        }
+    });
 }
 
-TEST(Layer, checkFloatMiddleWeights) {
-    // Init a small layer with a 2d Matrix with a 0 seed
-    // so that we get the same behavior every time.
-    Layer layerThing = Layer(5, 5, 0, "middle");
-
-    ASSERT_EQ(layerThing.unwrap().size(),
-              layerThing.size*layerThing.nextLayerSize) << "The layer's unwrap method does not match the expected size.";
-
-    std::vector<float> weights = layerThing.unwrap();
-    // Check that the values all center around .5
-    for (auto& item : weights) {
-        ASSERT_FLOAT_EQ(item, .5);
-    }
+TEST(Layer, checkFieldInitsWeightsGlorot) {
+    Layer layer = Layer(5, 5, 0, "glorot");
+    float limit = sqrt(6.f / (layer.w.rows * layer.w.cols));
+    cv::parallel_for_(cv::Range(0, layer.w.rows*layer.w.cols), [&](const cv::Range& range){
+        for (int r = range.start; r < range.end; r++)
+        {
+            int i = r / layer.w.cols;
+            int j = r % layer.w.cols;
+            ASSERT_NEAR(layer.w.ptr<float>(i)[j], 0, limit);
+        }
+    });
 }
 
-TEST(Layer, checkZeroedWeights) {
-    // Init a small layer with a 2d Matrix with a 0 seed
-    // so that we get the same behavior every time.
-    Layer layerThing = Layer(5, 5, 0, "literally anything else");
-
-    ASSERT_EQ(layerThing.unwrap().size(),
-            layerThing.size*layerThing.nextLayerSize) << "The layer's unwrap method does not match the expected size.";
-
-    std::vector<float> weights = layerThing.unwrap();
-    for (auto& item : weights) {
-        ASSERT_EQ(item, 0);
-    }
-}
-
-TEST(Layer, checkFloatWeights) {
-    // Init a small layer with a 2d Matrix with a 0 seed
-    // so that we get the same behavior every time.
-    Layer layerThing = Layer(5, 5, 0, "random");
-
-    ASSERT_EQ(layerThing.unwrap().size(),
-              layerThing.size*layerThing.nextLayerSize) << "The layer's unwrap method does not match the expected size.";
-
-    std::vector<float> weights = layerThing.unwrap();
-    // Check that the values all center around .5
-    for (auto& item : weights) {
-        ASSERT_NEAR(item, .5, .5);
-    }
+TEST(Layer, checkFieldInitsWeightsMiddle) {
+    Layer layer = Layer(5, 5, 0, "middle");
+    float limit = sqrt(6.f / (layer.w.rows * layer.w.cols));
+    cv::parallel_for_(cv::Range(0, layer.w.rows*layer.w.cols), [&](const cv::Range& range){
+        for (int r = range.start; r < range.end; r++)
+        {
+            int i = r / layer.w.cols;
+            int j = r % layer.w.cols;
+            ASSERT_FLOAT_EQ(layer.w.ptr<float>(i)[j], .5);
+        }
+    });
 }

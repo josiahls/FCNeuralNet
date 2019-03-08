@@ -2,91 +2,59 @@
 // Created by Laivins, Josiah on 2019-03-05.
 //
 
+#include <opencv2/core/mat.hpp>
+#include <opencv/cxmisc.h>
 #include "vector"
 #include "gtest/gtest.h"
-#include "../src/linearMath/Matrix2d.h"
-#include "../src/linearMath/Matrix2dv2.h"
 
 /**
  * End to end test of the Matrix struct
  */
-TEST(Matrix2d, Matrix2dCopyTest) {
+TEST(Matrix2d, Matrix2dCopyAndNumberTest) {
 
-    Matrix2d<int> matrix = Matrix2d<int>(200, 500, 0);
-    Matrix2d<int> matrixCopy = matrix;
+    cv::Mat matrix(200, 500, cv::DataType<float>::type);
+    matrix = cv::Scalar(0);
+    cv::Mat matrixCopy;
+    matrix.copyTo(matrixCopy);
+
     // Test the sizes
-    ASSERT_EQ(matrix.nrows, 200) << "The rows do not match";
-    ASSERT_EQ(matrix.ncols, 500) << "The columns do not match";
+    ASSERT_EQ(matrix.rows, 200) << "The rows do not match";
+    ASSERT_EQ(matrix.cols, 500) << "The columns do not match";
     // Test the sizes
-    ASSERT_EQ(matrixCopy.nrows, 200) << "The rows do not match";
-    ASSERT_EQ(matrixCopy.ncols, 500) << "The columns do not match";
+    ASSERT_EQ(matrixCopy.rows, 200) << "The rows do not match";
+    ASSERT_EQ(matrixCopy.cols, 500) << "The columns do not match";
     // Test other params
-    ASSERT_EQ(matrix.defaultValue, matrixCopy.defaultValue) << "The default values do not match";
+    ASSERT_EQ(matrix.at<int>(0, 0), matrixCopy.at<int>(0, 0)) << "The default values do not match";
     ASSERT_EQ(matrix.size, matrixCopy.size) << "The sizes do not match";
-    // Test default values
-    ASSERT_EQ(matrix[0][0], 0);
-    ASSERT_EQ(matrix[199][0], 0);
-    ASSERT_EQ(matrix[0][499], 0);
-    ASSERT_EQ(matrix[199][499], 0);
-    // Test default values
-    ASSERT_EQ(matrixCopy[0][0], 0);
-    ASSERT_EQ(matrixCopy[199][0], 0);
-    ASSERT_EQ(matrixCopy[0][499], 0);
-    ASSERT_EQ(matrixCopy[199][499], 0);
-    // Test the matrix valid sizes
-    ASSERT_ANY_THROW(matrix[199][600]);
-    ASSERT_ANY_THROW(matrix[200][-600]);
-    ASSERT_ANY_THROW(matrix[-200][600]);
-    ASSERT_ANY_THROW(matrix[-4][-5]);
-    // Test the matrix valid sizes
-    ASSERT_ANY_THROW(matrixCopy[199][600]);
-    ASSERT_ANY_THROW(matrixCopy[200][-600]);
-    ASSERT_ANY_THROW(matrixCopy[-200][600]);
-    ASSERT_ANY_THROW(matrixCopy[-4][-5]);
-    // The money shot is we should be able to change the values in one,
-    // and not affect the other.
-    matrixCopy[0][0] = 5;
-    ASSERT_NE(matrixCopy[0][0], matrix[0][0]);
-    matrix[0][0] = 9;
-    ASSERT_NE(matrixCopy[0][0], matrix[0][0]);
-    ASSERT_EQ(matrixCopy[0][1], matrix[0][1]);
+    // Test valid bounds
+    ASSERT_NO_THROW(matrixCopy.at<int>(199, 499));
+    ASSERT_NO_THROW(matrix.at<int>(199, 499));
 
-
+    // Test value assignment
+    matrix.at<int>(0,0) = 5;
+    ASSERT_NE(matrix.at<int>(0, 0), matrixCopy.at<int>(0, 0));
+    matrixCopy.at<int>(0,0) = 6;
+    ASSERT_NE(matrix.at<int>(0, 0), matrixCopy.at<int>(0, 0));
 }
 
-TEST(Matrix2d, Matrix2dIntTest) {
-
-    Matrix2d<int> matrix = Matrix2d<int>(200, 500, 0);
-    // Test the sizes
-    ASSERT_EQ(matrix.nrows, 200) << "The rows do not match";
-    ASSERT_EQ(matrix.ncols, 500) << "The columns do not match";
-    // Test default values
-    ASSERT_EQ(matrix[0][0], 0);
-    ASSERT_EQ(matrix[199][0], 0);
-    ASSERT_EQ(matrix[0][499], 0);
-    ASSERT_EQ(matrix[199][499], 0);
-    // Test the matrix valid sizes
-    ASSERT_ANY_THROW(matrix[199][600]);
-    ASSERT_ANY_THROW(matrix[200][-600]);
-    ASSERT_ANY_THROW(matrix[-200][600]);
-    ASSERT_ANY_THROW(matrix[-4][-5]);
-
-
-}
-
-TEST(Matrix2d, Matrix2dFloatTest) {
-    Matrix2d<float> matrix = Matrix2d<float>(200, 500, 400.3);
-    // Test the sizes
-    ASSERT_EQ(matrix.nrows, 200) << "The rows do not match";
-    ASSERT_EQ(matrix.ncols, 500) << "The columns do not match";
-    // Test default values
-    ASSERT_FLOAT_EQ(matrix[0][0], 400.3);
-    ASSERT_FLOAT_EQ(matrix[199][0], 400.3);
-    ASSERT_FLOAT_EQ(matrix[0][499], 400.3);
-    ASSERT_FLOAT_EQ(matrix[199][499], 400.3);
-    // Test the matrix valid sizes
-    ASSERT_ANY_THROW(matrix[199][600]);
-    ASSERT_ANY_THROW(matrix[200][-600]);
-    ASSERT_ANY_THROW(matrix[-200][600]);
-    ASSERT_ANY_THROW(matrix[-4][-5]);
+TEST(Matrix2d, Matrix2dForEachTest) {
+    cv::Mat m(5, 5, cv::DataType<int>::type);
+    cv::setNumThreads(1);
+    cv::parallel_for_(cv::Range(0, m.rows*m.cols), [&](const cv::Range& range){
+        for (int r = range.start; r < range.end; r++)
+        {
+            int i = r / m.cols;
+            int j = r % m.cols;
+            m.ptr<int>(i)[j] = 5;
+        }
+    });
+    cv::parallel_for_(cv::Range(0, m.rows*m.cols), [&](const cv::Range& range){
+        for (int r = range.start; r < range.end; r++)
+        {
+            int i = r / m.cols;
+            int j = r % m.cols;
+            ASSERT_EQ(m.ptr<int>(i)[j], 5);
+        }
+    });
+    cv::setNumThreads(0);
 }

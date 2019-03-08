@@ -6,8 +6,9 @@
 
 #include <string>
 #include <random>
+#include <opencv2/core/mat.hpp>
+#include <opencv/cxmisc.h>
 #include "Layer.h"
-#include "../linearMath/Matrix2d.h"
 
 Layer::Layer(int size, int nextLayerSize, int seed, std::string randomWeightMode)
     : size(size), nextLayerSize(nextLayerSize), seed(seed), randomWeightMode(std::move(randomWeightMode)) {
@@ -23,11 +24,9 @@ Layer::Layer(int size, int nextLayerSize, int seed, std::string randomWeightMode
     this->gradientW = this->w;
 }
 
-Matrix2d<float> Layer::getWeightInitialization(Dimension dimension, std::string mode) {
+cv::Mat Layer::getWeightInitialization(Dimension dimension, std::string mode) {
     // Define the local variable mode.
     mode = mode == ""? randomWeightMode: mode;
-    // Create the 2d matrix. It is going to default to zero
-    Matrix2d<float> m = Matrix2d<float>(dimension.currentLayerSize, dimension.nextLayerSize, 0);
     // Handle random initialization
     std::default_random_engine generator(std::random_device{}());
     if (seed != -1) {
@@ -49,40 +48,65 @@ Matrix2d<float> Layer::getWeightInitialization(Dimension dimension, std::string 
     } else if (mode == "middle") {
         bind = std::bind([](float a){return a; }, .5);
     } else if (mode == "glorot") {
-        float limit = sqrt(6.f / this->w.size);
+        float limit = sqrt(6.f / (dimension.currentLayerSize * dimension.nextLayerSize));
         std::uniform_real_distribution<float> distribution(-limit, limit);
         bind = std::bind(distribution, generator);
     }
 
+
     // Initialize the matrix with the determined random distribution
-    for(int row = 0; row < m.nrows; row++){
-        for(int col = 0; col < m.ncols; col++){
-            m[row][col] = bind();
+    // Create the 2d matrix. It is going to default to zero
+    cv::Mat m(dimension.currentLayerSize, dimension.nextLayerSize, cv::DataType<float>::type);
+    cv::parallel_for_(cv::Range(0, m.rows*m.cols), [&](const cv::Range& range){
+        for (int r = range.start; r < range.end; r++)
+        {
+            int i = r / m.cols;
+            int j = r % m.cols;
+            m.ptr<float>(i)[j] = bind();
         }
-    }
+    });
 
     return m;
 }
 
-std::vector<float> Layer::unwrap() {
-    return w.unwrap();
-}
-
-
-
-void Layer::wrap(std::vector<float> unwrappedMatrix, int otherNRows, int otherNCols) {
-    this->w.wrap(unwrappedMatrix, otherNRows, otherNCols);
-}
-
-Matrix2d<float> Layer::getForwardOutput(Matrix2d<float> z) {
+cv::Mat Layer::getForwardOutput(cv::Mat z) {
     // Formula: (z = XW)
     this->z = z;
-    // We perform the activation function on it
-//    this->a = this->getActivationSigmoid(z);
 
-    return Matrix2d<float>();
+    // TODO decide whether to return or make this void
+    // We perform the activation function on it
+    this->a = this->getActivationSigmoid(z);
+
+    // Similar to the @ in python
+    return this->a * this->w;
 }
 
-//Matrix2d<float> Layer::getActivationSigmoid(Matrix2d<float> z) {
-//    return 1 / (1 + exp(-z));
-//}
+cv::Mat Layer::getActivationSigmoid(cv::Mat z) {
+    cv::Mat newA;
+    cv::Mat multipliedMat;
+    cv::Mat dividedMat;
+    // FORMULA 2: (a = f(z))
+    cv::multiply(cv::Scalar(-1), z, multipliedMat);
+    cv::exp(multipliedMat, newA);
+    cv::divide(cv::Scalar(1), (cv::Scalar(1) + newA), dividedMat);
+    return dividedMat;
+}
+
+cv::Mat Layer::getActivationSigmoidPrime(cv::Mat z) {
+    // FORMULA 4: f'(z)
+    cv::Mat expNegativeZ;
+    cv::Mat multipliedMat;
+    cv::multiply(cv::Scalar(-1), z, multipliedMat);
+    // Get exp(-z)
+    cv::exp(multipliedMat, expNegativeZ);
+
+    cv::Mat expNegativeZToPower;
+    cv::Mat temp = cv::Scalar(1) + expNegativeZ;
+    cv::Mat newTemp;
+    temp.convertTo(newTemp, CV_32F);
+    cv::pow(newTemp, 2, expNegativeZToPower);
+
+    cv::Mat dividedMat;
+    cv::divide(expNegativeZ, expNegativeZToPower, dividedMat);
+    return dividedMat;
+}
