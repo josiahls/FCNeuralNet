@@ -5,6 +5,7 @@
 #include "vector"
 #include "gtest/gtest.h"
 #include "../src/linearMath/Matrix2d.h"
+#include "../src/linearMath/Matrix2dv2.h"
 
 /**
  * End to end test of the Matrix struct
@@ -55,7 +56,7 @@ TEST(Matrix2d, Matrix2dCopyTest) {
 
 TEST(Matrix2d, Matrix2dIntTest) {
 
-    Matrix2d<int> matrix = Matrix2d<int>(200, 500, 0);
+    Matrix2dv2<int> matrix = Matrix2dv2<int>(200, 500, 0);
     // Test the sizes
     ASSERT_EQ(matrix.nrows, 200) << "The rows do not match";
     ASSERT_EQ(matrix.ncols, 500) << "The columns do not match";
@@ -74,7 +75,7 @@ TEST(Matrix2d, Matrix2dIntTest) {
 }
 
 TEST(Matrix2d, Matrix2dFloatTest) {
-    Matrix2d<float> matrix = Matrix2d<float>(200, 500, 400.3);
+    Matrix2dv2<float> matrix = Matrix2dv2<float>(200, 500, 400.3);
     // Test the sizes
     ASSERT_EQ(matrix.nrows, 200) << "The rows do not match";
     ASSERT_EQ(matrix.ncols, 500) << "The columns do not match";
