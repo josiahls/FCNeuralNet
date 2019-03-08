@@ -51,12 +51,18 @@ public:
      */
     Matrix2d<float> getWeightInitialization(Dimension dimension, std::string mode = "");
 
+    Matrix2d<float> getForwardOutput(Matrix2d<float> z);
+
     /**
      * Unwraps Layer weights. Paired with a wrap function.
      *
      * @return
      */
     std::vector<float> unwrap();
+
+    void wrap(std::vector<float> unwrappedMatrix, int otherNRows, int otherNCols);
+
+//    Matrix2d<float> getActivationSigmoid(Matrix2d<float> matrix2d);
 };
 
 

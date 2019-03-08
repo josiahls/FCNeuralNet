@@ -67,3 +67,22 @@ Matrix2d<float> Layer::getWeightInitialization(Dimension dimension, std::string 
 std::vector<float> Layer::unwrap() {
     return w.unwrap();
 }
+
+
+
+void Layer::wrap(std::vector<float> unwrappedMatrix, int otherNRows, int otherNCols) {
+    this->w.wrap(unwrappedMatrix, otherNRows, otherNCols);
+}
+
+Matrix2d<float> Layer::getForwardOutput(Matrix2d<float> z) {
+    // Formula: (z = XW)
+    this->z = z;
+    // We perform the activation function on it
+//    this->a = this->getActivationSigmoid(z);
+
+    return Matrix2d<float>();
+}
+
+//Matrix2d<float> Layer::getActivationSigmoid(Matrix2d<float> z) {
+//    return 1 / (1 + exp(-z));
+//}
