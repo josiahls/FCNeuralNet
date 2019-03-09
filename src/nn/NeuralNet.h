@@ -155,7 +155,7 @@ public:
     }
 
     void minimizeAdamOptimizer(vector<float> grad, cv::Mat x, cv::Mat y) {
-        int numIterations = 15000;
+        int numIterations = 150;
         float alpha = 0.0001;
         float beta1 = 0.9;
         float beta2 = 0.999;

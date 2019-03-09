@@ -53,3 +53,6 @@ fabric.properties
 cmake-build-debug/*
 test/Makefile
 /test/Makefile
+/data/steering_dataset/
+data/steering_dataset/training/images/
+data/steering_dataset/training/steering_angles.csv
