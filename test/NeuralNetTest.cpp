@@ -6,6 +6,20 @@
 #include "../src/nn/NeuralNet.h"
 
 
+TEST(NeuralNet, NeuralNetTrainRMSETest) {
+    NeuralNet nn = NeuralNet();
+    nn.addLayer(2, 3, 0, "middle");
+    nn.addLayer(3, 1, 0, "middle");
+    nn.addLayer(1, 1, 0, "middle");
+
+    cv::Mat scaledX = (cv::Mat_<float>(3, 2) << 0.3, 0.5, 0.5, 0.1, 1, 0.2);
+    cv::Mat scaledY = (cv::Mat_<float>(3, 1) << 0.75, 0.82, 0.93);
+
+    nn.train(scaledX, scaledY);
+
+    ASSERT_NEAR(nn.rmse.back(), 0.004, 0.004);
+}
+
 TEST(NeuralNet, NeuralNetMinimizeAdamTest) {
     NeuralNet nn = NeuralNet();
     nn.addLayer(2, 3, 0, "middle");

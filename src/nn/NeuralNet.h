@@ -18,15 +18,15 @@ using namespace std;
 class NeuralNet {
 public:
     vector<Layer> layers;
-    vector<int> rmse;
-    vector<int> cost;
+    vector<float> rmse;
+    vector<float> cost;
     int maxY;
     int maxX;
 
     NeuralNet() {
         this->layers = vector<Layer>();
-        this->rmse = vector<int>();
-        this->cost = vector<int>();
+        this->rmse = vector<float>();
+        this->cost = vector<float>();
         this->maxY = 0;
         this->maxX = 0;
     };
@@ -44,6 +44,25 @@ public:
         cv::pow(predY - y, 2, subtractionToPower);
         return cv::sum(subtractionToPower)[0] * 0.5;
     }
+
+    void train(cv::Mat x, cv::Mat y) {
+        vector<float> paramsInitial = unwrap();
+        vector<float> unwrappedV = costFunctionPrime(x, y);
+
+        minimizeAdamOptimizer(unwrappedV, x, y);
+
+        logRMSE(x, y);
+    }
+
+    void logRMSE(cv::Mat x, cv::Mat y) {
+        cv::Mat predY = forward(x);
+        // Calc the RMSE
+        cv::Scalar scalarMean = cv::mean(predY - y);
+        float locRMSE = cv::sqrt(cv::pow((float)scalarMean[0], 2.f));
+        // Log that RMSE
+        rmse.emplace_back(locRMSE);
+    }
+
 
     vector<float> costFunctionPrime(cv::Mat x, cv::Mat y) {
 
@@ -186,6 +205,9 @@ public:
 
             // Wrap the new weights
             wrap(newParams);
+
+            // Log the cost
+            cost.emplace_back(costFunction(x, y));
         };
     }
 };

@@ -8,7 +8,7 @@ if (APPLE)
     add_definitions(-D__GLIBCXX__)
 endif (APPLE)
 
-add_executable(NeuralNetDemo main.cpp src/nn/NeuralNet.cpp src/nn/NeuralNet.h src/layers/Dimension.h src/layers/Layer.cpp src/layers/Layer.h src/linearMath/MatrixOp.h test/NeuralNetTest.cpp)
+add_executable(NeuralNetDemo main.cpp src/nn/NeuralNet.cpp src/nn/NeuralNet.h src/layers/Dimension.h src/layers/Layer.cpp src/layers/Layer.h test/NeuralNetTest.cpp)
 add_subdirectory(test)
 
 # Enable C++11
