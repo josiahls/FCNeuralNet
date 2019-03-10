@@ -8,6 +8,21 @@
 
 using namespace cv::utils::fs;
 
+TEST(DatasetCar, DatasetCar_csv_Read_Shuffle_Test) {
+    DatasetCar dataset;
+    dataset.readCsv();
+
+    cv::String firstFile = dataset[0].filename;
+    ASSERT_TRUE(exists(firstFile.c_str()));
+    float firstFileY = dataset[0].steeringAngle;
+    ASSERT_FLOAT_EQ(firstFileY, 2.815148426500059f);
+
+    dataset.readCsv(-1, true);
+    ASSERT_TRUE(exists(dataset[0].filename.c_str()));
+    ASSERT_NE(dataset[0].filename, firstFile);
+    ASSERT_NE(dataset[0].steeringAngle, 2.815148426500059f);
+}
+
 TEST(DatasetCar, DatasetCar_csv_Read_Test) {
     DatasetCar dataset;
     dataset.readCsv();

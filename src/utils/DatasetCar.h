@@ -150,6 +150,37 @@ public:
 
         return projectDataPath;
     }
+
+    std::vector<DatasetCar> split(float splitPercent) {
+        DatasetCar train;
+        DatasetCar validate;
+
+        int splitIndex = int(splitPercent * filenames.size());
+        vector<cv::String>::const_iterator firstFileNames = filenames.begin();
+        vector<cv::String>::const_iterator lastFileNames = filenames.begin() + splitIndex;
+        vector<float>::const_iterator firstFeatureValues = featureValues.begin();
+        vector<float>::const_iterator lastFeatureValues = featureValues.begin() + splitIndex;
+        // Setup train
+        train.filenames = std::vector<cv::String>(firstFileNames, lastFileNames);
+        train.featureValues = std::vector<float>(firstFeatureValues, lastFeatureValues);
+        train.indexes.resize(train.filenames.size());
+        std::iota(train.indexes.begin(), train.indexes.end(), 0);
+
+        // Setup validate
+        firstFileNames = filenames.begin() + splitIndex;
+        lastFileNames = filenames.end();
+        firstFeatureValues = featureValues.begin() + splitIndex;
+        lastFeatureValues = featureValues.end();
+
+        validate.filenames = std::vector<cv::String>(firstFileNames, lastFileNames);
+        validate.featureValues = std::vector<float>(firstFeatureValues, lastFeatureValues);
+        validate.indexes.resize(validate.filenames.size());
+        std::iota(validate.indexes.begin(), validate.indexes.end(), 0);
+
+        // Bundle both into a vector
+        vector<DatasetCar> returningSet = {train, validate};
+        return returningSet;
+    }
 };
 
 #endif //NEURALNETDEMO_DATASET_H

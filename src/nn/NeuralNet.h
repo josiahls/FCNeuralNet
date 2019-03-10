@@ -21,6 +21,7 @@ class NeuralNet {
 public:
     vector<Layer> layers;
     vector<float> rmse;
+    vector<float> rmseValidate;
     vector<float> cost;
     int maxY;
     int maxX;
@@ -28,6 +29,7 @@ public:
     NeuralNet() {
         this->layers = vector<Layer>();
         this->rmse = vector<float>();
+        this->rmseValidate = vector<float>();
         this->cost = vector<float>();
         this->maxY = 0;
         this->maxX = 0;
@@ -72,6 +74,13 @@ public:
         float locRMSE = cv::sqrt(cv::pow((float)scalarMean[0], 2.f));
         // Log that RMSE
         rmse.emplace_back(locRMSE);
+    }
+
+    void logBatchRMSEValidation(const cv::Mat &predY, const cv::Mat &y) {
+        cv::Scalar scalarMean = cv::mean(predY - y);
+        float locRMSE = cv::sqrt(cv::pow((float)scalarMean[0], 2.f));
+        // Log that RMSE
+        rmseValidate.emplace_back(locRMSE);
     }
 
 
