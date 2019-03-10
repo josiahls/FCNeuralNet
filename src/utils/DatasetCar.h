@@ -19,6 +19,9 @@
 #include <fstream>
 #include <iostream>
 #include <opencv2/core.hpp>
+#include <algorithm>
+#include <numeric>
+#include <random>
 
 #define GetCurrentDir getcwd
 #endif
@@ -37,24 +40,33 @@ public:
     std::string csvName;
     std::vector<cv::String> filenames;
     std::vector<float> featureValues;
+    std::vector<unsigned long> indexes;
 
     double minFeatureValue;
     double maxFeatureValue;
 
-    DatasetCar() {
+    long readableSize;
+
+    DatasetCar(long readableSize=0) {
         projectRoot = "NeuralNetDemo";
         csvDir = "steering_dataset/training";
         csvName = "steering_angles.csv";
+
+        this->readableSize = readableSize;
+    }
+
+    long getSize() {
+        return (readableSize > 0) ? this->readableSize : filenames.size();
     }
 
     DatasetCarElement operator[](unsigned long index) {
         return DatasetCarElement{
-            filenames.at(index),
-            featureValues.at(index),
+            filenames.at(indexes.at(index)),
+            featureValues.at(indexes.at(index)),
         };
     }
 
-    void readCsv(int numRows = -1) {
+    void readCsv(int numRows = -1, bool shuffle = false) {
         filenames.clear();
         featureValues.clear();
 
@@ -97,6 +109,13 @@ public:
         csvReader.close();
         // Get the min and maxes of the features for normalization
         cv::minMaxLoc(featureValues, &minFeatureValue, &maxFeatureValue);
+
+        // If specified, shuffle
+        indexes.resize(filenames.size());
+        std::iota(indexes.begin(), indexes.end(), 0);
+        if (shuffle) {
+            std::shuffle(indexes.begin(), indexes.end(), std::mt19937{std::random_device{}()});
+        }
     }
 
     std::string getCurrentPath(std::string lookingFor = "data") {

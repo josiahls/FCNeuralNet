@@ -23,8 +23,8 @@ float getNormalY(DatasetCar& dataset, int index) {
 
 int main() {
     // Load dataset
-    DatasetCar dataset;
-    dataset.readCsv(10);
+    DatasetCar dataset(30);
+    dataset.readCsv(100, true);
 
     // Create neural net
     NeuralNet nn = NeuralNet();
@@ -35,19 +35,31 @@ int main() {
     // Define epochs
     int epochs = 20;
     for (int epoch = 0; epoch < epochs; epoch++) {
+        printf("Starting epoch %i\n", epoch);
+
+        cv::Mat y;
+        cv::Mat predY;
 
         int batchSize = 5;
-        for (int i = 0; i < dataset.filenames.size(); i += batchSize) {
-            cv::Mat x;
-            cv::Mat y;
+        for (int i = 0; i < dataset.getSize(); i += batchSize) {
+            cv::Mat batchX;
+            cv::Mat batchY;
+            printf("\tStarting batch %i\n", i);
 
-            for (int imageLoc = i, slot = 0; imageLoc < i + batchSize and imageLoc < dataset.filenames.size();
+            for (int imageLoc = i, slot = 0; imageLoc < i + batchSize and imageLoc < dataset.getSize();
                  imageLoc++, slot++) {
-                x.push_back(getImage(dataset, imageLoc));
-                y.push_back(getNormalY(dataset, imageLoc));
+                batchX.push_back(getImage(dataset, imageLoc));
+                batchY.push_back(getNormalY(dataset, imageLoc));
             }
-            nn.train(x, y);
+            
+            cv::vconcat(batchY, y);
+            cv::vconcat(nn.forward(batchX), predY);
+
+            nn.train(batchX, batchY, 15, batchSize);
         }
+        // Eval the RMSE independent of batches
+        nn.logBatchRMSE(predY, y);
+
         printf("Epoch %i RMSE %f\n", epoch, nn.rmse.back());
     }
     return 0;

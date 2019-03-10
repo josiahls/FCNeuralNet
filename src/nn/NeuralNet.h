@@ -1,3 +1,5 @@
+#include <utility>
+
 //
 // Created by Laivins, Josiah on 2019-03-05.
 //
@@ -31,12 +33,12 @@ public:
         this->maxX = 0;
     };
 
-    cv::Mat predict(cv::Mat x) {
+    cv::Mat predict(const cv::Mat &x) {
         cv::Mat y = forward(x);
         return y;
     };
 
-    double costFunction(cv::Mat x, cv::Mat y) {
+    double costFunction(const cv::Mat &x, const cv::Mat &y) {
         // FORMULA 3: J = sum((1/2) * (y - y_hat)^2)
         cv::Mat predY = forward(x);
 
@@ -45,16 +47,18 @@ public:
         return cv::sum(subtractionToPower)[0] * 0.5;
     }
 
-    void train(cv::Mat x, cv::Mat y) {
+    void train(const cv::Mat &x, const cv::Mat &y, int numIterations = 15000, int batchSize = -1) {
         vector<float> paramsInitial = unwrap();
         vector<float> unwrappedV = costFunctionPrime(x, y);
 
-        minimizeAdamOptimizer(unwrappedV, x, y);
+        minimizeAdamOptimizer(unwrappedV, x, y, numIterations);
 
-        logRMSE(x, y);
+        if (batchSize == -1) {
+            logRMSE(x, y);
+        }
     }
 
-    void logRMSE(cv::Mat x, cv::Mat y) {
+    void logRMSE(const cv::Mat &x, const cv::Mat &y) {
         cv::Mat predY = forward(x);
         // Calc the RMSE
         cv::Scalar scalarMean = cv::mean(predY - y);
@@ -63,8 +67,15 @@ public:
         rmse.emplace_back(locRMSE);
     }
 
+    void logBatchRMSE(const cv::Mat &predY, const cv::Mat &y) {
+        cv::Scalar scalarMean = cv::mean(predY - y);
+        float locRMSE = cv::sqrt(cv::pow((float)scalarMean[0], 2.f));
+        // Log that RMSE
+        rmse.emplace_back(locRMSE);
+    }
 
-    vector<float> costFunctionPrime(cv::Mat x, cv::Mat y) {
+
+    vector<float> costFunctionPrime(const cv::Mat &x, const cv::Mat &y) {
 
         cv::Mat predY = forward(x);
         cv::Mat delta;
@@ -95,10 +106,10 @@ public:
 
     void addLayer(int size, int nextLayerSize, int seed = -1,
             std::string randomWeightMode = "") {
-        layers.emplace_back(Layer(size, nextLayerSize,seed, randomWeightMode));
+        layers.emplace_back(Layer(size, nextLayerSize,seed, std::move(randomWeightMode)));
     }
 
-    cv::Mat forward(cv::Mat xScaled) {
+    cv::Mat forward(const cv::Mat &xScaled) {
         layers[0].getForwardOutput(xScaled);
         layers[0].a = xScaled;
         cv::Mat nextZ = layers[0].a * layers[0].w;
@@ -115,9 +126,7 @@ public:
         vector<float> params;
         for (int i = 0; i < layers.size() - 1; i++) {
             for (int j = 0; j < layers[i].w.rows; j++) {
-                for (int k = 0; k < layers[i].w.cols; k++) {
-                    params.push_back(layers[i].w.at<float>(j, k));
-                }
+                params.insert(params.end(), layers[i].w.ptr<float>(j), layers[i].w.ptr<float>(j)+layers[i].w.cols);
             }
         }
         return params;
@@ -126,10 +135,10 @@ public:
     vector<float> unwrapGradients() {
         vector<float> params;
         for (int i = 0; i < layers.size()-1; i++) {
+
             for (int j = 0; j < layers[i].gradientW.rows; j++) {
-                for (int k = 0; k < layers[i].gradientW.cols; k++) {
-                    params.push_back(layers[i].gradientW.at<float>(j, k));
-                }
+                params.insert(params.end(), layers[i].gradientW.ptr<float>(j),
+                        layers[i].gradientW.ptr<float>(j)+layers[i].gradientW.cols);
             }
         }
         return params;
@@ -154,8 +163,7 @@ public:
         }
     }
 
-    void minimizeAdamOptimizer(vector<float> grad, cv::Mat x, cv::Mat y) {
-        int numIterations = 150;
+    void minimizeAdamOptimizer(vector<float> grad, const cv::Mat &x, const cv::Mat &y, int numIterations = 15000) {
         float alpha = 0.0001;
         float beta1 = 0.9;
         float beta2 = 0.999;
