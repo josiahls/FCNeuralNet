@@ -66,7 +66,7 @@ public:
         };
     }
 
-    void readCsv(int numRows = -1, bool shuffle = false) {
+    void readCsv(int numRows = -1, bool shuffle = false, int seed = -1) {
         filenames.clear();
         featureValues.clear();
 
@@ -114,7 +114,15 @@ public:
         indexes.resize(filenames.size());
         std::iota(indexes.begin(), indexes.end(), 0);
         if (shuffle) {
-            std::shuffle(indexes.begin(), indexes.end(), std::mt19937{std::random_device{}()});
+
+            // Handle random initialization
+            std::default_random_engine generator(std::random_device{}());
+            if (seed != -1) {
+                // To help with debugging, the seed can be defined. The unit test cases take this and
+                // set the seed to 0
+                generator.seed(static_cast<unsigned int>(seed));
+            }
+            std::shuffle(indexes.begin(), indexes.end(), generator);
         }
     }
 
@@ -155,11 +163,21 @@ public:
         DatasetCar train;
         DatasetCar validate;
 
-        int splitIndex = int(splitPercent * filenames.size());
-        vector<cv::String>::const_iterator firstFileNames = filenames.begin();
-        vector<cv::String>::const_iterator lastFileNames = filenames.begin() + splitIndex;
-        vector<float>::const_iterator firstFeatureValues = featureValues.begin();
-        vector<float>::const_iterator lastFeatureValues = featureValues.begin() + splitIndex;
+        // Define the local filenames, fileValues
+        vector<cv::String> localFileNames;
+        vector<float> localFeatureValues;
+
+        for (auto& index: indexes) {
+            localFileNames.push_back(this->operator[](index).filename);
+            localFeatureValues.push_back(this->operator[](index).steeringAngle);
+        }
+
+
+        int splitIndex = int(splitPercent * localFileNames.size());
+        vector<cv::String>::const_iterator firstFileNames = localFileNames.begin();
+        vector<cv::String>::const_iterator lastFileNames = localFileNames.begin() + splitIndex;
+        vector<float>::const_iterator firstFeatureValues = localFeatureValues.begin();
+        vector<float>::const_iterator lastFeatureValues = localFeatureValues.begin() + splitIndex;
         // Setup train
         train.filenames = std::vector<cv::String>(firstFileNames, lastFileNames);
         train.featureValues = std::vector<float>(firstFeatureValues, lastFeatureValues);
@@ -167,15 +185,21 @@ public:
         std::iota(train.indexes.begin(), train.indexes.end(), 0);
 
         // Setup validate
-        firstFileNames = filenames.begin() + splitIndex;
-        lastFileNames = filenames.end();
-        firstFeatureValues = featureValues.begin() + splitIndex;
-        lastFeatureValues = featureValues.end();
+        firstFileNames = localFileNames.begin() + splitIndex;
+        lastFileNames = localFileNames.end();
+        firstFeatureValues = localFeatureValues.begin() + splitIndex;
+        lastFeatureValues = localFeatureValues.end();
 
         validate.filenames = std::vector<cv::String>(firstFileNames, lastFileNames);
         validate.featureValues = std::vector<float>(firstFeatureValues, lastFeatureValues);
         validate.indexes.resize(validate.filenames.size());
         std::iota(validate.indexes.begin(), validate.indexes.end(), 0);
+
+        // Set the max and min feature values
+        train.maxFeatureValue = this->maxFeatureValue;
+        validate.maxFeatureValue = this->maxFeatureValue;
+        train.minFeatureValue = this->minFeatureValue;
+        validate.minFeatureValue = this->minFeatureValue;
 
         // Bundle both into a vector
         vector<DatasetCar> returningSet = {train, validate};

@@ -3,26 +3,29 @@ project(NeuralNetDemo)
 
 set(CMAKE_CXX_STANDARD 14)
 
-### QT IMPORT ##
-## Find includes in corresponding build directories
-#set(CMAKE_INCLUDE_CURRENT_DIR ON)
-## Instruct CMake to run moc automatically when needed
-#set(CMAKE_AUTOMOC ON)
-## Create code from a list of Qt designer ui files
-#set(CMAKE_AUTOUIC ON)
-#
-## Find the QtWidgets library
-#find_package(Qt5Widgets CONFIG REQUIRED)
-################
-
 
 if (APPLE)
     add_definitions(-DGTEST_USE_OWN_TR1_TUPLE)
     add_definitions(-D__GLIBCXX__)
 endif (APPLE)
 
-add_executable(NeuralNetDemo main.cpp src/nn/NeuralNet.cpp src/nn/NeuralNet.h src/layers/Dimension.h src/layers/Layer.cpp src/layers/Layer.h src/utils/DatasetCar.h)
+add_executable(NeuralNetDemo main.cpp src/nn/NeuralNet.cpp src/nn/NeuralNet.h src/layers/Dimension.h src/layers/Layer.cpp src/layers/Layer.h src/utils/DatasetCar.h src/ui/LogThread.h src/ui/LoggerWidget.h)
 add_subdirectory(test)
+
+####### Setup Qt #################################
+# Find includes in corresponding build directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Instruct CMake to run moc automatically when needed
+set(CMAKE_AUTOMOC ON)
+# Create code from a list of Qt designer ui files
+set(CMAKE_AUTOUIC ON)
+
+# Find the QtWidgets library
+find_package(QT5Charts CONFIG REQUIRED)
+
+# Use the Widgets module from Qt 5
+target_link_libraries(NeuralNetDemo Qt5::Charts)
+##################################################
 
 # Enable C++11
 set(CMAKE_CXX_STANDARD 11)
