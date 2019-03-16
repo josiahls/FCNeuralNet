@@ -9,7 +9,9 @@ if (APPLE)
     add_definitions(-D__GLIBCXX__)
 endif (APPLE)
 
-add_executable(NeuralNetDemo main.cpp src/nn/NeuralNet.cpp src/nn/NeuralNet.h src/layers/Dimension.h src/layers/Layer.cpp src/layers/Layer.h src/utils/DatasetCar.h src/ui/LogThread.h src/ui/LoggerWidget.h)
+add_executable(NeuralNetDemo main.cpp src/executables/VisualizationBoard.cpp src/nn/NeuralNet.cpp src/nn/NeuralNet.h src/layers/Dimension.h src/layers/Layer.cpp
+                             src/layers/Layer.h src/utils/DatasetCar.h src/ui/MainWindow.h src/ui/MainWindow.cpp
+                             src/utils/BoardWriter.h src/executables/NeuralNetRun.cpp src/executables/NeuralNetRun.h src/executables/VisualizationBoard.h)
 add_subdirectory(test)
 
 ####### Setup Qt #################################

@@ -34,7 +34,10 @@ include_directories(${gtest_SOURCE_DIR}/include/)
 endif()
 
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(test Matrix2dTest.cpp LayerTest.cpp ../src/layers/Layer.cpp ../src/layers/Layer.h OpenCVUnitTest.cpp NeuralNetTest.cpp ../src/utils/DatasetCar.h DatasetTest.cpp ../src/ui/LogThread.h)
+add_executable(test Matrix2dTest.cpp LayerTest.cpp ../src/layers/Layer.cpp ../src/layers/Layer.h
+        OpenCVUnitTest.cpp NeuralNetTest.cpp ../src/utils/DatasetCar.h DatasetTest.cpp ../src/executables/VisualizationBoard.cpp
+        ../src/ui/MainWindow.h ../src/ui/MainWindow.cpp ../src/utils/BoardWriter.h BoardWriterTest.cpp ../src/nn/NeuralNet.h
+        ../src/executables/NeuralNetRun.cpp ../src/executables/NeuralNetRun.h ../src/executables/VisualizationBoard.h)
 target_link_libraries(test gtest gtest_main)
 
 #add_test(NAME example_test COMMAND example)

@@ -164,8 +164,8 @@ public:
         DatasetCar validate;
 
         // Define the local filenames, fileValues
-        vector<cv::String> localFileNames;
-        vector<float> localFeatureValues;
+        std::vector<cv::String> localFileNames;
+        std::vector<float> localFeatureValues;
 
         for (auto& index: indexes) {
             localFileNames.push_back(this->operator[](index).filename);
@@ -174,10 +174,10 @@ public:
 
 
         int splitIndex = int(splitPercent * localFileNames.size());
-        vector<cv::String>::const_iterator firstFileNames = localFileNames.begin();
-        vector<cv::String>::const_iterator lastFileNames = localFileNames.begin() + splitIndex;
-        vector<float>::const_iterator firstFeatureValues = localFeatureValues.begin();
-        vector<float>::const_iterator lastFeatureValues = localFeatureValues.begin() + splitIndex;
+        std::vector<cv::String>::const_iterator firstFileNames = localFileNames.begin();
+        std::vector<cv::String>::const_iterator lastFileNames = localFileNames.begin() + splitIndex;
+        std::vector<float>::const_iterator firstFeatureValues = localFeatureValues.begin();
+        std::vector<float>::const_iterator lastFeatureValues = localFeatureValues.begin() + splitIndex;
         // Setup train
         train.filenames = std::vector<cv::String>(firstFileNames, lastFileNames);
         train.featureValues = std::vector<float>(firstFeatureValues, lastFeatureValues);
@@ -202,7 +202,7 @@ public:
         validate.minFeatureValue = this->minFeatureValue;
 
         // Bundle both into a vector
-        vector<DatasetCar> returningSet = {train, validate};
+        std::vector<DatasetCar> returningSet = {train, validate};
         return returningSet;
     }
 };
