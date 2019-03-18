@@ -1,0 +1,10 @@
+//
+// Created by Laivins, Josiah on 2019-03-17.
+//
+
+#ifndef NEURALNETDEMO_LOGWIDGET_H
+#define NEURALNETDEMO_LOGWIDGET_H
+
+
+
+#endif //NEURALNETDEMO_LOGWIDGET_H

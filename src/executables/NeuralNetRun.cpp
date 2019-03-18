@@ -50,7 +50,7 @@ namespace nn {
         return smoothedY;
     }
 
-    int run() {
+    int run(int argc, char *argv[]) {
         printf("Running Neural Net Run");
         // Load dataset
         DatasetCar dataset(10);

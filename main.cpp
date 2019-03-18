@@ -14,9 +14,9 @@ int main(int argc, char *argv[]) {
         std::string s = std::string(argv[1]);
 
         if (s == "-runViz") {
-            boardViz::run();
+            boardViz::run(argc, argv);
         } else if (s == "-runNN") {
-            nn::run();
+            nn::run(argc, argv);
         }
 
     }

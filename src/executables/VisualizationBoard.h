@@ -6,7 +6,7 @@
 #define NEURALNETDEMO_VISUALIZATIONBOARD_H
 
 namespace boardViz {
-    int run();
+    int run(int argc, char *argv[]);
 }
 
 #endif //NEURALNETDEMO_VISUALIZATIONBOARD_H

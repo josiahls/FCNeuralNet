@@ -11,7 +11,7 @@ endif (APPLE)
 
 add_executable(NeuralNetDemo main.cpp src/executables/VisualizationBoard.cpp src/nn/NeuralNet.cpp src/nn/NeuralNet.h src/layers/Dimension.h src/layers/Layer.cpp
                              src/layers/Layer.h src/utils/DatasetCar.h src/ui/MainWindow.h src/ui/MainWindow.cpp
-                             src/utils/BoardWriter.h src/executables/NeuralNetRun.cpp src/executables/NeuralNetRun.h src/executables/VisualizationBoard.h)
+                             src/utils/BoardWriter.h src/executables/NeuralNetRun.cpp src/executables/NeuralNetRun.h src/executables/VisualizationBoard.h src/ui/LogWidget.h)
 add_subdirectory(test)
 
 ####### Setup Qt #################################
@@ -24,9 +24,13 @@ set(CMAKE_AUTOUIC ON)
 
 # Find the QtWidgets library
 find_package(QT5Charts CONFIG REQUIRED)
+find_package(QT5Concurrent CONFIG REQUIRED)
+find_package(QT5Widgets CONFIG REQUIRED)
 
 # Use the Widgets module from Qt 5
 target_link_libraries(NeuralNetDemo Qt5::Charts)
+target_link_libraries(NeuralNetDemo Qt5::Concurrent)
+target_link_libraries(NeuralNetDemo Qt5::Widgets)
 ##################################################
 
 # Enable C++11
