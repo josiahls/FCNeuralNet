@@ -9,11 +9,6 @@ if (APPLE)
     add_definitions(-D__GLIBCXX__)
 endif (APPLE)
 
-add_executable(NeuralNetDemo main.cpp src/executables/VisualizationBoard.cpp src/nn/NeuralNet.cpp src/nn/NeuralNet.h src/layers/Dimension.h src/layers/Layer.cpp
-                             src/layers/Layer.h src/utils/DatasetCar.h src/ui/MainWindow.h src/ui/MainWindow.cpp
-                             src/utils/BoardWriter.h src/executables/NeuralNetRun.cpp src/executables/NeuralNetRun.h src/executables/VisualizationBoard.h src/ui/LogWidget.h)
-add_subdirectory(test)
-
 ####### Setup Qt #################################
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -23,14 +18,61 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Find the QtWidgets library
-find_package(QT5Charts CONFIG REQUIRED)
-find_package(QT5Concurrent CONFIG REQUIRED)
-find_package(QT5Widgets CONFIG REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Concurrent Charts REQUIRED)
+
+set(CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-arcs -ftest-coverage")
+#
+## set up a mapping so that the Release configuration for the Qt imported target is
+## used in the COVERAGE CMake configuration.
+set_target_properties(Qt5::Core PROPERTIES MAP_IMPORTED_CONFIG_COVERAGE "RELEASE")
+
+set(SRC_FILES
+        ${PROJECT_SOURCE_DIR}/main.cpp
+        ${PROJECT_SOURCE_DIR}/src/executables/VisualizationBoard.cpp
+        ${PROJECT_SOURCE_DIR}/src/nn/NeuralNet.cpp
+        ${PROJECT_SOURCE_DIR}/src/layers/Dimension.h
+        ${PROJECT_SOURCE_DIR}/src/layers/Layer.cpp
+        ${PROJECT_SOURCE_DIR}/src/utils/DatasetCar.h
+        ${PROJECT_SOURCE_DIR}/src/executables/NeuralNetRun.cpp
+        ${PROJECT_SOURCE_DIR}/src/ui/LogWidget.cpp
+        ${PROJECT_SOURCE_DIR}/src/utils/BoardWriter.cpp
+        ${PROJECT_SOURCE_DIR}/src/ui/xyseriesiodevice.cpp src/ui/LogFileReader.h src/utils/Logger.h src/utils/Logger.cpp)
+
+add_executable(NeuralNetDemo ${SRC_FILES})
+add_subdirectory(test)
 
 # Use the Widgets module from Qt 5
 target_link_libraries(NeuralNetDemo Qt5::Charts)
 target_link_libraries(NeuralNetDemo Qt5::Concurrent)
 target_link_libraries(NeuralNetDemo Qt5::Widgets)
+
+
+
+
+
+#set (MyProjectLib_src
+#        ${PROJECT_SOURCE_DIR}/src/executables/VisualizationBoard.cpp
+#        ${PROJECT_SOURCE_DIR}/src/ui/LogWidget.cpp
+#        ${PROJECT_SOURCE_DIR}/src/ui/MainWindow.cpp
+#        )
+#set (MyProjectLib_hdr
+#        ${PROJECT_SOURCE_DIR}/src/executables/VisualizationBoard.h
+#        ${PROJECT_SOURCE_DIR}/src/ui/LogWidget.h
+#        ${PROJECT_SOURCE_DIR}/src/ui/MainWindow.h
+#        )
+#set (MyProjectBin_src ${PROJECT_SOURCE_DIR}/main.cpp)
+#
+#qt5_wrap_cpp(MyProjectLib_hdr_moc ${MyProjectLib_hdr})
+#
+#include_directories (${PROJECT_SOURCE_DIR})
+#include_directories (${PROJECT_BINARY_DIR})
+#
+#add_library (MyProjectLib SHARED
+#        ${MyProjectLib_src}
+#        ${MyProjectLib_hdr_moc}
+#        )
+#
+#target_link_libraries (NeuralNetDemo MyProjectLib)
 ##################################################
 
 # Enable C++11

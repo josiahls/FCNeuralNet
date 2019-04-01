@@ -33,11 +33,26 @@ message("The source directory is: ${gtest_SOURCE_DIR}/include/gtest/gtest.h")
 include_directories(${gtest_SOURCE_DIR}/include/)
 endif()
 
+set(SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/nn/NeuralNet.cpp
+        ${PROJECT_SOURCE_DIR}/src/layers/Dimension.h
+        ${PROJECT_SOURCE_DIR}/src/layers/Layer.cpp
+        ${PROJECT_SOURCE_DIR}/src/utils/DatasetCar.h
+        ${PROJECT_SOURCE_DIR}/src/executables/NeuralNetRun.cpp
+        ${PROJECT_SOURCE_DIR}/src/utils/BoardWriter.h
+        ${PROJECT_SOURCE_DIR}/src/ui/LogFileReader.h
+        ${PROJECT_SOURCE_DIR}/src/utils/Logger.cpp)
+
+set(TEST_FILES
+        Matrix2dTest.cpp
+        LayerTest.cpp
+        OpenCVUnitTest.cpp
+        NeuralNetTest.cpp
+        DatasetTest.cpp
+        BoardWriterTest.cpp)
+
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(test Matrix2dTest.cpp LayerTest.cpp ../src/layers/Layer.cpp ../src/layers/Layer.h
-        OpenCVUnitTest.cpp NeuralNetTest.cpp ../src/utils/DatasetCar.h DatasetTest.cpp ../src/executables/VisualizationBoard.cpp
-        ../src/ui/MainWindow.h ../src/ui/MainWindow.cpp ../src/utils/BoardWriter.h BoardWriterTest.cpp ../src/nn/NeuralNet.h
-        ../src/executables/NeuralNetRun.cpp ../src/executables/NeuralNetRun.h ../src/executables/VisualizationBoard.h ../src/ui/LogWidget.h)
+add_executable(test ${TEST_FILES} ${SRC_FILES})
 target_link_libraries(test gtest gtest_main)
 
 #add_test(NAME example_test COMMAND example)

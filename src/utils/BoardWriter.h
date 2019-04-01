@@ -1,6 +1,3 @@
-#include <utility>
-
-#include <utility>
 
 //
 // Created by Laivins, Josiah on 2019-03-15.
@@ -44,9 +41,9 @@ public:
     std::string logBaseFilePath;
 
     BoardWriter(std::string logDir = "logs", std::string logRootName = "log") {
-        projectRootName = "NeuralNetDemo";
-        logRootName = std::move(logRootName);
-        rootLogDirName = std::move(logDir);
+        BoardWriter::projectRootName = "NeuralNetDemo";
+        BoardWriter::logRootName = std::move(logRootName);
+        BoardWriter::rootLogDirName = std::move(logDir);
         this->logDirRootPath = this->getLogPath();
         this->subLogDirPath = "";
         this->logBaseFilePath = "";

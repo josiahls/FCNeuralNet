@@ -10,6 +10,7 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/videoio.hpp"
+#include "../utils/BoardWriter.h"
 
 namespace nn {
 
@@ -55,6 +56,8 @@ namespace nn {
         // Load dataset
         DatasetCar dataset(10);
         dataset.readCsv(100, true);
+        // Setup the writer
+        BoardWriter w;
 
         vector<DatasetCar> d = dataset.split(.01);
         DatasetCar trainDataset = d[0];
@@ -75,7 +78,7 @@ namespace nn {
         }
 
         // Define epochs
-        int epochs = 600;
+        int epochs = 200;
         for (int epoch = 0; epoch < epochs; epoch++) {
             printf("Starting epoch %i\n", epoch);
 
@@ -102,6 +105,8 @@ namespace nn {
             // Eval the RMSE independent of batches
             nn.logBatchRMSE(predY, y);
             nn.logBatchRMSEValidation(nn.forward(validationX), validationY);
+            w.write("RMSE", nn.rmse.back(), 0);
+            w.write("Validation RMSE", nn.rmseValidate.back(), 0);
 
             printf("Epoch %i RMSE: %f Validation RMSE: %f\n", epoch, nn.rmse.back(), nn.rmseValidate.back());
         }

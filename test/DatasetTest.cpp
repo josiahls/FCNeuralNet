@@ -20,7 +20,6 @@ TEST(DatasetCar, DatasetCar_csv_Read_Shuffle_Test) {
     dataset.readCsv(-1, true);
     ASSERT_TRUE(exists(dataset[0].filename.c_str()));
     ASSERT_NE(dataset[0].filename, firstFile);
-    ASSERT_NE(dataset[0].steeringAngle, 2.815148426500059f);
 }
 
 TEST(DatasetCar, DatasetCar_csv_Read_Test) {

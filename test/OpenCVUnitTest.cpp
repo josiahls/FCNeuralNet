@@ -9,7 +9,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/videoio.hpp"
 //
-TEST(OpenCVfdsa, OpenCVTest) {
+TEST(OpenCV, OpenCVTest) {
     // allocates a 30x40 floating-point matrix
     cv::Mat j;//A(30, 40, cv::DataType<float>::type);
 

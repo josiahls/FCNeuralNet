@@ -1,9 +1,0 @@
-//
-// Created by Laivins, Josiah on 2019-03-15.
-//
-
-#ifndef NEURALNETDEMO_MAINWINDOW_H
-#define NEURALNETDEMO_MAINWINDOW_H
-
-
-#endif //NEURALNETDEMO_MAINWINDOW_H
