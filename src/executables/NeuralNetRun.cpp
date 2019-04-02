@@ -47,12 +47,12 @@ namespace nn {
 
     cv::Mat getGuassianBinnedY(cv::Mat y, int smoothSize) {
         cv::Mat smoothedY;
-        GaussianBlur(y, smoothedY, cv::Size(0, 0), 3, 0);
+        GaussianBlur(y, smoothedY, cv::Size(0, 0), smoothSize, 0);
 
         return smoothedY;
     }
 
-    float getAccuracy(cv::Mat predY, cv::Mat y, DatasetCar validationDataset, int bins, float tolarance=1) {
+    float getAccuracy(cv::Mat predY, cv::Mat y, DatasetCar validationDataset, int bins, float tolarance=5) {
         vector<int> predictedLocations;
         vector<int> actualLocations;
 
@@ -95,40 +95,42 @@ namespace nn {
     int run(int argc, char *argv[]) {
         printf("Running Neural Net Run");
         // Load dataset
-        DatasetCar dataset(10);
-        dataset.readCsv(100, true);
+        DatasetCar dataset(-1);
+        dataset.readCsv(-1, true);
         // Setup the writer
         BoardWriter w;
 
-        vector<DatasetCar> d = dataset.split(.1);
+        vector<DatasetCar> d = dataset.split(.7);
         DatasetCar trainDataset = d[0];
         DatasetCar validationDataset = d[1];
 
         // Create neural net
         NeuralNet nn = NeuralNet();
-        nn.addLayer(64 * 64 * 3, 10, 0, "random");
-        nn.addLayer(10, 60, 0, "random");
-        nn.addLayer(60, 1, 0, "random");
+        nn.addLayer(64 * 64 * 3, 30, 0, "middle");
+        nn.addLayer(30, 120, 0, "middle");
+        nn.addLayer(120, 1, 0, "middle");
 
         // Init the validation variables
         cv::Mat validationX;
         cv::Mat validationY;
         for (int i = 0; i < validationDataset.getSize(); i++) {
             validationX.push_back(getImage(validationDataset, i));
-            validationY.push_back(getBinnedY(getNormalY(validationDataset, i), 60));
+            validationY.push_back(getBinnedY(getNormalY(validationDataset, i), 120));
         }
 
         std::vector<float> validationAccuracy = vector<float>();
+        std::vector<float> trainAccuracy = vector<float>();
+
 
         // Define epochs
-        int epochs = 800;
+        int epochs = 40;
         for (int epoch = 0; epoch < epochs; epoch++) {
             printf("Starting epoch %i\n", epoch);
 
             cv::Mat y;
             cv::Mat predY;
 
-            int batchSize = 50;
+            int batchSize = 30;
             for (int i = 0; i < trainDataset.getSize(); i += batchSize) {
                 cv::Mat batchX;
                 cv::Mat batchY;
@@ -137,7 +139,7 @@ namespace nn {
                 for (int imageLoc = i, slot = 0; imageLoc < i + batchSize and imageLoc < trainDataset.getSize();
                      imageLoc++, slot++) {
                     batchX.push_back(getImage(trainDataset, imageLoc));
-                    batchY.push_back(getGuassianBinnedY(getBinnedY(getNormalY(trainDataset, imageLoc), 60), 5));
+                    batchY.push_back(getGuassianBinnedY(getBinnedY(getNormalY(trainDataset, imageLoc), 120), 5));
                 }
 
                 y.push_back(batchY);
@@ -149,14 +151,17 @@ namespace nn {
             nn.logBatchRMSE(predY, y);
             cv::Mat validationPredY = nn.forward(validationX);
             nn.logBatchRMSEValidation(validationPredY, validationY);
-            validationAccuracy.push_back(getAccuracy(validationPredY, validationY, validationDataset, 60));
+            validationAccuracy.push_back(getAccuracy(validationPredY, validationY, validationDataset, 120));
+            trainAccuracy.push_back(getAccuracy(predY, y, trainDataset, 120));
+
 
             w.write("RMSE", nn.rmse.back(), 0);
             w.write("Validation RMSE", nn.rmseValidate.back(), 0);
             w.write("Validation Accuracy Percent", validationAccuracy.back(), 0);
+            w.write("Train Accuracy Percent", trainAccuracy.back(), 0);
 
-            printf("Epoch %i RMSE: %f Validation RMSE: %f\n Validation Accuracy is %f percent\n",
-                    epoch, nn.rmse.back(), nn.rmseValidate.back(), validationAccuracy.back());
+            printf("Epoch %i RMSE: %f Validation RMSE: %f\n Validation Accuracy is %f percent\n Train Accuracy is %f percent\n",
+                    epoch, nn.rmse.back(), nn.rmseValidate.back(), validationAccuracy.back(), trainAccuracy.back());
         }
         return 0;
     }

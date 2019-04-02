@@ -94,7 +94,7 @@ public:
             for(int j=0; j<predY.cols; ++j)
                 subVect.push_back(subMat.at<double>(i, j));
 
-        cv::Scalar scalarMean = cv::mean(predY - y);
+        cv::Scalar scalarMean = cv::mean(subMat);
         float locRMSE = cv::sqrt(cv::pow((float)scalarMean[0], 2.f));
         // Log that RMSE
         rmseValidate.emplace_back(locRMSE);
@@ -107,14 +107,14 @@ public:
         cv::Mat delta;
         bool started = false;
 
-        std::vector<double> actVect;
-        for(int i=0; i<predY.rows; ++i)
-            for(int j=0; j<predY.cols; ++j)
-                actVect.push_back(predY.at<double>(i, j));
-        std::vector<double> actVect2;
-        for(int i=0; i<y.rows; ++i)
-            for(int j=0; j<y.cols; ++j)
-                actVect2.push_back(y.at<double>(i, j));
+//        std::vector<double> actVect;
+//        for(int i=0; i<predY.rows; ++i)
+//            for(int j=0; j<predY.cols; ++j)
+//                actVect.push_back(predY.at<double>(i, j));
+//        std::vector<double> actVect2;
+//        for(int i=0; i<y.rows; ++i)
+//            for(int j=0; j<y.cols; ++j)
+//                actVect2.push_back(y.at<double>(i, j));
 
         for (unsigned long i = layers.size() - 1; i > 0; i--) {
             if (!started) {
