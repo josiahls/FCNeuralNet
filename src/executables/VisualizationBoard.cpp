@@ -20,7 +20,7 @@ namespace boardViz {
         // Get the most recent directory, and init the the number of graphs in that directory
         std::vector<cv::String> dirs = Logger::getLogDirs();
         std::sort(dirs.begin(), dirs.end());
-        cv::String mostRecentDir = dirs[0];
+        cv::String mostRecentDir = dirs.back();
         // Get the files in the directory
         std::vector<cv::String> files = Logger::getLogDirs(mostRecentDir);
 

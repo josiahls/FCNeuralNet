@@ -23,7 +23,7 @@ namespace nn {
     }
 
     float getNormalY(DatasetCar& dataset, int index) {
-        double y = (dataset[index].steeringAngle - dataset.minFeatureValue) /
+        float y = (dataset[index].steeringAngle - dataset.minFeatureValue) /
                    (dataset.maxFeatureValue - dataset.minFeatureValue);
         if (dataset.maxFeatureValue - dataset.minFeatureValue == 0) {
             cout << "Note, y is being set to 0" << endl;
@@ -33,22 +33,63 @@ namespace nn {
         return (float)y;
     }
 
-    cv::Mat getBinnedY(float y, int bins) {
+    cv::Mat getBinnedY(float y, unsigned long bins) {
         // Convert y to a vector dtype
-        cv::Mat arrayOfArrays = (cv::Mat_<float>(1, 1) << y);
-        vector<int> channels = {0};
-        vector<int> histSize = {bins};
-        vector<float> ranges = {0.f, 1.f};
-        cv::Mat histogram;
-        cv::calcHist(arrayOfArrays, channels, cv::Mat(), histogram, histSize,ranges);
-        cv::transpose(histogram, histogram);
+        long closestBin = lround(y * bins) - 1;
+        std::vector<float> preHist(bins, 0);
+        preHist[closestBin] = 1;
+        cv::Mat histogram(1, static_cast<int>(preHist.size()), CV_32F);
+        for(int i=0; i<histogram.cols; ++i)
+            histogram.at<float>(0, i) = preHist.at(i);
+
         return histogram;
     }
 
     cv::Mat getGuassianBinnedY(cv::Mat y, int smoothSize) {
         cv::Mat smoothedY;
-        GaussianBlur(y, smoothedY, cv::Size(smoothSize, smoothSize), 0, 0, cv::BORDER_CONSTANT);
+        GaussianBlur(y, smoothedY, cv::Size(0, 0), 3, 0);
+
         return smoothedY;
+    }
+
+    float getAccuracy(cv::Mat predY, cv::Mat y, DatasetCar validationDataset, int bins, float tolarance=1) {
+        vector<int> predictedLocations;
+        vector<int> actualLocations;
+
+        // Get the max locations
+        double min, max;
+        cv::Point predMinLoc, predMaxLoc;
+        cv::Point minLoc, maxLoc;
+
+        // Iterate through each row and get the location of the max
+        for(int i = 0; i < predY.rows; i++) {
+            cv::minMaxLoc(predY.row(i), &min, &max, &predMinLoc, &predMaxLoc);
+            cv::minMaxLoc(y.row(i), &min, &max, &minLoc, &maxLoc);
+            predictedLocations.push_back(predMaxLoc.x);
+            actualLocations.push_back(maxLoc.x);
+        }
+        // Convert each to their actual angles
+        vector<double> predictedAngles;
+        vector<double> actualAngles;
+        for (long i = 0; i < predictedLocations.size(); i++) {
+            float predictedAngle = predictedLocations.at(i) / float(bins);
+            float actualAngle = actualLocations.at(i) / float(bins);
+            predictedAngles.push_back((predictedAngle * validationDataset.maxFeatureValue) - validationDataset.minFeatureValue);
+            actualAngles.push_back((actualAngle * validationDataset.maxFeatureValue) - validationDataset.minFeatureValue);
+        }
+        // Determine accuracy of angles within a tolerance
+        cv::Mat absOfAngles;
+        cv::subtract(predictedAngles, actualAngles, absOfAngles);
+        absOfAngles = cv::abs(absOfAngles);
+        float acc = 0;
+
+        for (int i = 0; i < absOfAngles.cols; i++) {
+            float value = absOfAngles.at<float>(0, i);
+            if (value < tolarance) acc++;
+        }
+
+
+        return (acc / absOfAngles.cols) * 100;
     }
 
     int run(int argc, char *argv[]) {
@@ -59,7 +100,7 @@ namespace nn {
         // Setup the writer
         BoardWriter w;
 
-        vector<DatasetCar> d = dataset.split(.01);
+        vector<DatasetCar> d = dataset.split(.1);
         DatasetCar trainDataset = d[0];
         DatasetCar validationDataset = d[1];
 
@@ -77,8 +118,10 @@ namespace nn {
             validationY.push_back(getBinnedY(getNormalY(validationDataset, i), 60));
         }
 
+        std::vector<float> validationAccuracy = vector<float>();
+
         // Define epochs
-        int epochs = 200;
+        int epochs = 800;
         for (int epoch = 0; epoch < epochs; epoch++) {
             printf("Starting epoch %i\n", epoch);
 
@@ -94,7 +137,7 @@ namespace nn {
                 for (int imageLoc = i, slot = 0; imageLoc < i + batchSize and imageLoc < trainDataset.getSize();
                      imageLoc++, slot++) {
                     batchX.push_back(getImage(trainDataset, imageLoc));
-                    batchY.push_back(getBinnedY(getNormalY(trainDataset, imageLoc), 60));
+                    batchY.push_back(getGuassianBinnedY(getBinnedY(getNormalY(trainDataset, imageLoc), 60), 5));
                 }
 
                 y.push_back(batchY);
@@ -104,11 +147,16 @@ namespace nn {
             }
             // Eval the RMSE independent of batches
             nn.logBatchRMSE(predY, y);
-            nn.logBatchRMSEValidation(nn.forward(validationX), validationY);
+            cv::Mat validationPredY = nn.forward(validationX);
+            nn.logBatchRMSEValidation(validationPredY, validationY);
+            validationAccuracy.push_back(getAccuracy(validationPredY, validationY, validationDataset, 60));
+
             w.write("RMSE", nn.rmse.back(), 0);
             w.write("Validation RMSE", nn.rmseValidate.back(), 0);
+            w.write("Validation Accuracy Percent", validationAccuracy.back(), 0);
 
-            printf("Epoch %i RMSE: %f Validation RMSE: %f\n", epoch, nn.rmse.back(), nn.rmseValidate.back());
+            printf("Epoch %i RMSE: %f Validation RMSE: %f\n Validation Accuracy is %f percent\n",
+                    epoch, nn.rmse.back(), nn.rmseValidate.back(), validationAccuracy.back());
         }
         return 0;
     }

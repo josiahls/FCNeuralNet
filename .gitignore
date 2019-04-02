@@ -56,3 +56,4 @@ test/Makefile
 /data/steering_dataset/
 data/steering_dataset/training/images/
 data/steering_dataset/training/steering_angles.csv
+/logs/
