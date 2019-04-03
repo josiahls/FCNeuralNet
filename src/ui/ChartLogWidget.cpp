@@ -2,23 +2,11 @@
 // Created by Laivins, Josiah on 2019-03-19.
 //
 
-#include "LogWidget.h"
-#include "xyseriesiodevice.h"
-#include <QtMultimedia/QAudioDeviceInfo>
-#include <QtMultimedia/QAudioInput>
-
-#include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
-#include <QtCharts/QChart>
-#include <QtCharts/QValueAxis>
-
-#include <QtWidgets/QVBoxLayout>
-#include <QTextStream>
-#include <QtConcurrent>
+#include "ChartLogWidget.h"
 
 QT_CHARTS_USE_NAMESPACE
 
-LogWidget::LogWidget(const QString &logFilePath, QWidget *parent) :
+ChartLogWidget::ChartLogWidget(const QString &logFilePath, QWidget *parent) :
         QWidget(parent),
         m_chart(new QChart),
         m_series(new QLineSeries) {
@@ -49,7 +37,7 @@ LogWidget::LogWidget(const QString &logFilePath, QWidget *parent) :
     this->fileReaderLoopFuture = QtConcurrent::run(this->m_fileReader, &LogFileReader::readFile);
 }
 
-LogWidget::~LogWidget()
+ChartLogWidget::~ChartLogWidget()
 {
     m_fileReadingProcess->close();
 }

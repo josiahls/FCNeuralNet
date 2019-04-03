@@ -6,7 +6,9 @@
 #define NEURALNETDEMO_NEURALNETRUN_H
 
 namespace nn {
-    int run(int argc, char *argv[]);
+    int train(int argc, char **argv);
+
+    int run(int argc, char **argv);
 }
 
 #endif //NEURALNETDEMO_NEURALNETRUN_H

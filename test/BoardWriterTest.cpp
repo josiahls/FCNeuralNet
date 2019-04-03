@@ -6,7 +6,7 @@
 #include "../src/utils/BoardWriter.h"
 
 TEST (BoardWriter, BoardWriter_Log_Dir_Test) {
-    BoardWriter writer;
+    BoardWriter writer(std::string(), std::string(), false);
     writer.write("Accuracy", 0.3, BoardWriter::ONE_D_VECTOR);
     ASSERT_TRUE(exists(writer.logBaseFilePath + "_Accuracy.csv"));
     writer.removeSubDir();
@@ -14,7 +14,7 @@ TEST (BoardWriter, BoardWriter_Log_Dir_Test) {
 }
 
 TEST (BoardWriter, BoardWriter_Log_ReadWrite_Test) {
-    BoardWriter writer;
+    BoardWriter writer(std::string(), std::string(), false);
     ASSERT_TRUE(!exists(writer.logBaseFilePath));
     writer.write("Accuracy", 0.3, BoardWriter::ONE_D_VECTOR);
     ASSERT_TRUE(exists(writer.logBaseFilePath + "_Accuracy.csv"));

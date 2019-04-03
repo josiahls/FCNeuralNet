@@ -11,6 +11,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/videoio.hpp"
 #include "../utils/BoardWriter.h"
+#include "../utils/Logger.h"
 
 namespace nn {
 
@@ -50,6 +51,22 @@ namespace nn {
         GaussianBlur(y, smoothedY, cv::Size(0, 0), smoothSize, 0);
 
         return smoothedY;
+    }
+
+    double getActualY(cv::Mat predY, DatasetCar dataset, int bins) {
+
+        int predictedLocation = 0;
+        // Get the max locations
+        double min, max;
+        cv::Point predMinLoc, predMaxLoc;
+
+        // Iterate through each row and get the location of the max
+        cv::minMaxLoc(predY.row(0), &min, &max, &predMinLoc, &predMaxLoc);
+        predictedLocation = predMaxLoc.x;
+        double predictedAngle = predictedLocation / float(bins);
+        predictedAngle = (predictedAngle * dataset.maxFeatureValue) - dataset.minFeatureValue;
+
+        return predictedAngle;
     }
 
     float getAccuracy(cv::Mat predY, cv::Mat y, DatasetCar validationDataset, int bins, float tolarance=5) {
@@ -92,13 +109,13 @@ namespace nn {
         return (acc / absOfAngles.cols) * 100;
     }
 
-    int run(int argc, char *argv[]) {
+    int train(int argc, char **argv) {
         printf("Running Neural Net Run");
         // Load dataset
-        DatasetCar dataset(-1);
-        dataset.readCsv(-1, true);
+        DatasetCar dataset(100);
+        dataset.readCsv(50, true);
         // Setup the writer
-        BoardWriter w;
+        BoardWriter w(std::string(), std::string(), false);
 
         vector<DatasetCar> d = dataset.split(.7);
         DatasetCar trainDataset = d[0];
@@ -123,14 +140,14 @@ namespace nn {
 
 
         // Define epochs
-        int epochs = 40;
+        int epochs = 2;
         for (int epoch = 0; epoch < epochs; epoch++) {
             printf("Starting epoch %i\n", epoch);
 
             cv::Mat y;
             cv::Mat predY;
 
-            int batchSize = 30;
+            int batchSize = 50;
             for (int i = 0; i < trainDataset.getSize(); i += batchSize) {
                 cv::Mat batchX;
                 cv::Mat batchY;
@@ -163,6 +180,69 @@ namespace nn {
             printf("Epoch %i RMSE: %f Validation RMSE: %f\n Validation Accuracy is %f percent\n Train Accuracy is %f percent\n",
                     epoch, nn.rmse.back(), nn.rmseValidate.back(), validationAccuracy.back(), trainAccuracy.back());
         }
+        // Finally we want to save the neural net params
+        BoardWriter modelWriter("models", "model", false);
+        modelWriter.write("params", nn.unwrap(), 0);
+
+        return 0;
+    }
+
+    int run(int argc, char **argv) {
+        DatasetCar dataset(100);
+        dataset.readCsv(50, true);
+        NeuralNet nn = NeuralNet();
+        nn.addLayer(64 * 64 * 3, 30, 0, "middle");
+        nn.addLayer(30, 120, 0, "middle");
+        nn.addLayer(120, 1, 0, "middle");
+        // Get the model params
+        std::vector<cv::String> dirs = Logger::getLogDirs("models");
+        std::sort(dirs.begin(), dirs.end());
+        cv::String mostRecentDir = dirs.back();
+        // Get the files in the directory
+        std::vector<cv::String> files = Logger::getLogDirs("models", mostRecentDir);
+        // Start reading the csv
+        std::ifstream csvReader(files[0].c_str());
+        std::string currentLine;
+        std::vector<float> params;
+        for(int k = 0; std::getline(csvReader, currentLine); k++) {
+            std::stringstream tempStream(currentLine);
+            std::string temp;
+            float number;
+            // Go through each col
+            for (int i = 0; std::getline(tempStream, temp, ','); i++) {
+                std::stringstream iss( temp );
+                if (i == 0 && k != 0) {
+                    while ( iss >> number ) {
+                        params.push_back( number );
+                    }
+                }
+            }
+        }
+        // Wrap the params back into the nn
+        nn.wrap(params);
+
+
+        // Init the validation variables
+        cv::Mat validationX;
+        cv::Mat validationY;
+        for (int i = 0; i < dataset.getSize(); i++) {
+            validationX.push_back(getImage(dataset, i));
+            validationY.push_back(getBinnedY(getNormalY(dataset, i), 120));
+        }
+        // Create a writer for the image accuracy results
+        BoardWriter modelWriter("logs", "log", true);
+
+        // Collect the accuracy from the forward X
+        std::vector<double> validationActualY = vector<double>();
+        std::vector<std::string> validationOriginalImage = vector<std::string>();
+        cv::Mat validationPredY = nn.forward(validationX);
+        for (int i = 0; i < validationPredY.rows; i++) {
+            validationActualY.push_back(getActualY(validationPredY.row(i), dataset, 120));
+            validationOriginalImage.push_back(dataset[i].filename);
+            modelWriter.write("image", validationActualY.back(), validationOriginalImage.back(), 0);
+        }
+
+        printf("done");
         return 0;
     }
 }

@@ -56,7 +56,7 @@ public:
     }
 
     long getSize() {
-        return (readableSize > 0) ? this->readableSize : filenames.size();
+        return (filenames.empty()) ? this->readableSize : filenames.size();
     }
 
     DatasetCarElement operator[](unsigned long index) {

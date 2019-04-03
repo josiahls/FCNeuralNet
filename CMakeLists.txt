@@ -33,10 +33,14 @@ set(SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/layers/Dimension.h
         ${PROJECT_SOURCE_DIR}/src/layers/Layer.cpp
         ${PROJECT_SOURCE_DIR}/src/utils/DatasetCar.h
-        ${PROJECT_SOURCE_DIR}/src/executables/NeuralNetRun.cpp
-        ${PROJECT_SOURCE_DIR}/src/ui/LogWidget.cpp
         ${PROJECT_SOURCE_DIR}/src/utils/BoardWriter.cpp
-        ${PROJECT_SOURCE_DIR}/src/ui/xyseriesiodevice.cpp src/ui/LogFileReader.h src/utils/Logger.h src/utils/Logger.cpp)
+        ${PROJECT_SOURCE_DIR}/src/utils/Logger.cpp
+        ${PROJECT_SOURCE_DIR}/src/executables/NeuralNetRun.cpp
+        ${PROJECT_SOURCE_DIR}/src/ui/LogImageFileReader.h
+        ${PROJECT_SOURCE_DIR}/src/ui/LogFileReader.h
+        ${PROJECT_SOURCE_DIR}/src/ui/ChartLogWidget.cpp
+        ${PROJECT_SOURCE_DIR}/src/ui/xyseriesiodevice.cpp
+        ${PROJECT_SOURCE_DIR}/src/ui/ImageLogWidget.cpp)
 
 add_executable(NeuralNetDemo ${SRC_FILES})
 add_subdirectory(test)
@@ -52,12 +56,12 @@ target_link_libraries(NeuralNetDemo Qt5::Widgets)
 
 #set (MyProjectLib_src
 #        ${PROJECT_SOURCE_DIR}/src/executables/VisualizationBoard.cpp
-#        ${PROJECT_SOURCE_DIR}/src/ui/LogWidget.cpp
+#        ${PROJECT_SOURCE_DIR}/src/ui/ChartLogWidget.cpp
 #        ${PROJECT_SOURCE_DIR}/src/ui/MainWindow.cpp
 #        )
 #set (MyProjectLib_hdr
 #        ${PROJECT_SOURCE_DIR}/src/executables/VisualizationBoard.h
-#        ${PROJECT_SOURCE_DIR}/src/ui/LogWidget.h
+#        ${PROJECT_SOURCE_DIR}/src/ui/ChartLogWidget.h
 #        ${PROJECT_SOURCE_DIR}/src/ui/MainWindow.h
 #        )
 #set (MyProjectBin_src ${PROJECT_SOURCE_DIR}/main.cpp)

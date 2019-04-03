@@ -15,10 +15,11 @@ int main(int argc, char *argv[]) {
 
         if (s == "-runViz") {
             boardViz::run(argc, argv);
-        } else if (s == "-runNN") {
+        } else if (s == "-trainNN") {
+            nn::train(argc, argv);
+        }  else if (s == "-runNN") {
             nn::run(argc, argv);
         }
-
     }
 
 }

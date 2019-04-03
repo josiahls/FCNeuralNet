@@ -40,14 +40,32 @@ public:
     std::string subLogDirPath;
     std::string logBaseFilePath;
 
-    BoardWriter(std::string logDir = "logs", std::string logRootName = "log") {
+    BoardWriter(std::string logDir = "logs", std::string logRootName = "log", bool useExisting = false) {
         BoardWriter::projectRootName = "NeuralNetDemo";
         BoardWriter::logRootName = std::move(logRootName);
         BoardWriter::rootLogDirName = std::move(logDir);
         this->logDirRootPath = this->getLogPath();
         this->subLogDirPath = "";
         this->logBaseFilePath = "";
-        this->initLog();
+
+        if (!useExisting) this->initLog();
+        // If we want to use an existing log then calling this will override some of the existing params
+        if (useExisting) this->initExistingLog();
+    }
+
+    void initExistingLog() {
+        // Get the most recent directory, and init the the number of graphs in that directory
+        std::vector<cv::String> dirs = getLogDirs();
+        std::sort(dirs.begin(), dirs.end());
+        cv::String mostRecentDir = dirs.back();
+        // Extract the base filename
+        // Get the files in the directory
+        std::vector<cv::String> files = getLogDirs(mostRecentDir);
+
+
+        this->subLogDirPath = mostRecentDir;
+        size_t loc = mostRecentDir.rfind('/');
+        this->logBaseFilePath = join(mostRecentDir, mostRecentDir.substr(loc+1));
     }
 
     void initLog() {
@@ -100,7 +118,6 @@ public:
             std::ofstream csvWriter(directLogName);
             csvWriter << name << "," << "dt" << "\n";
             csvWriter.close();
-
         }
 
         // Start write new data to the csv
@@ -108,6 +125,43 @@ public:
         csvWriter << value << "," << std::to_string(time(0)) << "\n";
         csvWriter.close();
     }
+
+    void write(std::string name, std::vector<float> value, int flag) {
+
+        cv::String directLogName = logBaseFilePath + "_" + name + ".csv";
+
+        // Verify that the path actually exists
+        if (!exists(directLogName)) {
+            std::ofstream csvWriter(directLogName);
+            csvWriter << name << "," << "dt" << "\n";
+            csvWriter.close();
+        }
+
+        // Start write new data to the csv
+        std::ofstream csvWriter(directLogName, std::ofstream::app);
+        std::copy(value.begin(), value.end(), std::ostream_iterator<float>(csvWriter, " "));
+        csvWriter << "," << std::to_string(time(0)) << "\n";
+        csvWriter.close();
+    }
+
+    void write(std::string name, double value, std::string filename, int flag) {
+
+        cv::String directLogName = logBaseFilePath + "_" + name + ".csv";
+
+        // Verify that the path actually exists
+        if (!exists(directLogName)) {
+            std::ofstream csvWriter(directLogName);
+            csvWriter << name << "," << "filename" << "," << "dt" << "\n";
+            csvWriter.close();
+
+        }
+
+        // Start write new data to the csv
+        std::ofstream csvWriter(directLogName, std::ofstream::app);
+        csvWriter << value << "," << filename << "," << std::to_string(time(0)) << "\n";
+        csvWriter.close();
+    }
+
 
     std::string getCurrentPath() {
         char cCurrentPath[FILENAME_MAX];
@@ -151,7 +205,7 @@ public:
 
         std::vector<cv::String> filenames;
 
-        glob(folder, filenames); // new function that does the job ;-)
+        glob(folder, "", filenames, false, true); // new function that does the job ;-)
         return filenames;
     }
 

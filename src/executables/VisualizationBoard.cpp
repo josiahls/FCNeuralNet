@@ -8,7 +8,8 @@
 #include <QtWidgets>
 #include <QtConcurrent/QtConcurrent>
 #include <functional>
-#include <src/ui/LogWidget.h>
+#include <src/ui/ChartLogWidget.h>
+#include <src/ui/ImageLogWidget.h>
 
 namespace boardViz {
     int run(int argc, char *argv[]) {
@@ -27,9 +28,17 @@ namespace boardViz {
         std::vector<std::shared_ptr<QWidget>> logWidgets;
         int i = 0;
         for (auto &item : files) {
-                logWidgets.push_back(std::shared_ptr<QWidget>(new LogWidget(item.c_str())));
-                mainLayout->addWidget(logWidgets.back().get(), i / 2, (i % 2), 1, 1, Qt::AlignLeft);
-                i++;
+                if (item.find("image") == cv::String::npos) {
+                        if (i <= 3) {
+                                logWidgets.push_back(std::shared_ptr<QWidget>(new ChartLogWidget(item.c_str())));
+                                mainLayout->addWidget(logWidgets.back().get(), i / 2, (i % 2), 1, 1, Qt::AlignLeft);
+                        }
+                        i++;
+                } else {
+                        logWidgets.push_back(std::shared_ptr<QWidget>(new ImageLogWidget(item.c_str())));
+                        mainLayout->addWidget(logWidgets.back().get(), i / 2, (i % 2), 1, 1, Qt::AlignLeft);
+                        i++;
+                }
         }
 
         // Create a widget

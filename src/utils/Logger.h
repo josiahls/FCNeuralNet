@@ -61,8 +61,12 @@ public:
         return projectLogPath;
     }
 
-    static std::vector<cv::String> getLogDirs(std::string subFolder = "") {
-        cv::String folder = Logger::getLogPath();
+    static std::vector<cv::String> getLogDirs(cv::String rootLogDirName = "logs", std::string subFolder = "") {
+        cv::String folder = rootLogDirName;
+        if (rootLogDirName.find('/') == std::string::npos) {
+            folder = Logger::getLogPath(rootLogDirName);
+        }
+
         if (subFolder != "") {
             if (subFolder.find('/') == std::string::npos || subFolder.find('\\') == std::string::npos) {
                 folder = subFolder;

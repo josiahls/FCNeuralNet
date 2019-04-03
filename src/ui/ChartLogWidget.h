@@ -5,6 +5,15 @@
 #ifndef NEURALNETDEMO_LOGWIDGET_H
 #define NEURALNETDEMO_LOGWIDGET_H
 
+#include "LogFileReader.h"
+#include "xyseriesiodevice.h"
+#include <QtMultimedia/QAudioDeviceInfo>
+#include <QtMultimedia/QAudioInput>
+
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QChart>
+#include <QtCharts/QValueAxis>
 #include <QWidget>
 #include <QtCharts/QChartGlobal>
 #include <QTextStream>
@@ -12,7 +21,10 @@
 #include <QProcess>
 #include <QFuture>
 #include "xyseriesiodevice.h"
-#include "LogFileReader.h"
+
+#include <QtWidgets/QVBoxLayout>
+#include <QTextStream>
+#include <QtConcurrent>
 
 QT_CHARTS_BEGIN_NAMESPACE
     class QLineSeries;
@@ -21,13 +33,13 @@ QT_CHARTS_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
 
-class LogWidget : public QWidget {
+class ChartLogWidget : public QWidget {
 Q_OBJECT
 
 public:
-    explicit LogWidget(const QString &logFilePath, QWidget *parent = nullptr);
+    explicit ChartLogWidget(const QString &logFilePath, QWidget *parent = nullptr);
 
-    ~LogWidget();
+    ~ChartLogWidget();
 
 private:
     QChart *m_chart;

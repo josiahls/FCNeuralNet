@@ -31,7 +31,6 @@ QT_CHARTS_USE_NAMESPACE
 class LogFileReader  : public QObject {
     Q_OBJECT
 public:
-
     explicit LogFileReader(QLineSeries *series, QChart *chart,QValueAxis *axisX, QValueAxis *axisY,
             QString logFilePath, QObject *parent = nullptr) :
             QObject(parent),
