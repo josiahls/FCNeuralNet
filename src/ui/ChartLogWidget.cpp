@@ -33,8 +33,13 @@ ChartLogWidget::ChartLogWidget(const QString &logFilePath, QWidget *parent) :
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(chartView);
 
-    m_fileReader = new LogFileReader(m_series, m_chart, axisX, axisY, logFilePath, this);
-    this->fileReaderLoopFuture = QtConcurrent::run(this->m_fileReader, &LogFileReader::readFile);
+    m_fileReader = new LogFileReader(m_series, m_chart, axisX, axisY, logFilePath);
+    m_thread = new QThread;
+    m_fileReader->moveToThread(m_thread);
+    connect(m_thread, SIGNAL (started()), m_fileReader, SLOT (process()));
+    m_thread->start();
+
+//    this->fileReaderLoopFuture = QtConcurrent::run(this->m_fileReader, &LogFileReader::process);
 }
 
 ChartLogWidget::~ChartLogWidget()

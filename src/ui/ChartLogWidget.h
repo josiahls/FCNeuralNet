@@ -46,6 +46,7 @@ private:
     QLineSeries *m_series ;
     QProcess *m_fileReadingProcess = nullptr;
     LogFileReader *m_fileReader = nullptr;
+    QThread *m_thread = nullptr;
     QFuture<void> fileReaderLoopFuture;
 };
 

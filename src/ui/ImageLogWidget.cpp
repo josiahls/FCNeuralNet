@@ -18,8 +18,13 @@ ImageLogWidget::ImageLogWidget(const QString &logFilePath, QWidget *parent) :
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(graphicsView);
 
-    m_fileReader = new LogImageFileReader(m_imageItem, m_scene, logFilePath, this);
-    this->fileReaderLoopFuture = QtConcurrent::run(this->m_fileReader, &LogImageFileReader::readFile);
+    m_fileReader = new LogImageFileReader(m_imageItem, m_scene, logFilePath);
+
+    m_thread = new QThread;
+    m_fileReader->moveToThread(m_thread);
+    connect(m_thread, SIGNAL (started()), m_fileReader, SLOT (process()));
+    m_thread->start();
+//    this->fileReaderLoopFuture = QtConcurrent::run(this->m_fileReader, &LogImageFileReader::process);
 }
 
 ImageLogWidget::~ImageLogWidget() {

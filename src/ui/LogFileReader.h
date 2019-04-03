@@ -32,8 +32,7 @@ class LogFileReader  : public QObject {
     Q_OBJECT
 public:
     explicit LogFileReader(QLineSeries *series, QChart *chart,QValueAxis *axisX, QValueAxis *axisY,
-            QString logFilePath, QObject *parent = nullptr) :
-            QObject(parent),
+            QString logFilePath) :
             m_chart(chart),
             m_series(series),
             m_axisX(axisX),
@@ -41,8 +40,8 @@ public:
             m_logFilePath(logFilePath) {
     }
 
-
-    void readFile() {
+public slots:
+    void process() {
         // If the file cannot be opened, then return
         QFile file(this->m_logFilePath);
         // Loop while the file cannot be read
@@ -106,6 +105,11 @@ public:
         }
     }
 
+signals:
+    void finished();
+    void error(QString err);
+
+private:
     QLineSeries *m_series;
     QChart *m_chart;
     QVector<QPointF> m_buffer;

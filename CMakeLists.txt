@@ -36,8 +36,8 @@ set(SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/utils/BoardWriter.cpp
         ${PROJECT_SOURCE_DIR}/src/utils/Logger.cpp
         ${PROJECT_SOURCE_DIR}/src/executables/NeuralNetRun.cpp
-        ${PROJECT_SOURCE_DIR}/src/ui/LogImageFileReader.h
-        ${PROJECT_SOURCE_DIR}/src/ui/LogFileReader.h
+        ${PROJECT_SOURCE_DIR}/src/ui/LogImageFileReader.cpp
+        ${PROJECT_SOURCE_DIR}/src/ui/LogFileReader.cpp
         ${PROJECT_SOURCE_DIR}/src/ui/ChartLogWidget.cpp
         ${PROJECT_SOURCE_DIR}/src/ui/xyseriesiodevice.cpp
         ${PROJECT_SOURCE_DIR}/src/ui/ImageLogWidget.cpp)

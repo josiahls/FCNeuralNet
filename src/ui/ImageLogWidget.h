@@ -39,6 +39,7 @@ private:
     QGraphicsPixmapItem *m_imageItem ;
     QProcess *m_fileReadingProcess = nullptr;
     LogImageFileReader *m_fileReader = nullptr;
+    QThread *m_thread = nullptr;
     QFuture<void> fileReaderLoopFuture;
 };
 

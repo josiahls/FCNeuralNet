@@ -22,6 +22,7 @@
 #include <iostream>
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
+#include <QFile>
 
 //QT_CHARTS_BEGIN_NAMESPACE
 //class QXYSeries;
@@ -33,19 +34,18 @@ class LogImageFileReader : public QObject {
 public:
 
     explicit LogImageFileReader(QGraphicsPixmapItem *imageItem, QGraphicsScene *scene,
-            QString logFilePath, QObject *parent = nullptr) :
-            QObject(parent),
+            QString logFilePath) :
             m_scene(scene),
             m_imageItem(imageItem),
             m_logFilePath(logFilePath) {
     }
 
-
-    void readFile() {
+public slots:
+    void process() {
         // If the file cannot be opened, then return
         QFile file(this->m_logFilePath);
         // Loop while the file cannot be read
-        std::cout<<"reading image"<< std::endl;
+//        std::cout<<"reading image"<< std::endl;
         while (!file.open(QIODevice::ReadOnly | QIODevice::Text)) std::cout << "Can't Read File" << std::endl;
 
         // Create the text reader and clear the series and buffer for a fresh read
@@ -84,6 +84,11 @@ public:
         }
     }
 
+signals:
+    void finished();
+    void error(QString err);
+
+private:
     QGraphicsPixmapItem *m_imageItem;
     QGraphicsScene *m_scene;
     QVector<QPointF> m_buffer;

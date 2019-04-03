@@ -29,10 +29,8 @@ namespace boardViz {
         int i = 0;
         for (auto &item : files) {
                 if (item.find("image") == cv::String::npos) {
-                        if (i <= 3) {
-                                logWidgets.push_back(std::shared_ptr<QWidget>(new ChartLogWidget(item.c_str())));
-                                mainLayout->addWidget(logWidgets.back().get(), i / 2, (i % 2), 1, 1, Qt::AlignLeft);
-                        }
+                        logWidgets.push_back(std::shared_ptr<QWidget>(new ChartLogWidget(item.c_str())));
+                        mainLayout->addWidget(logWidgets.back().get(), i / 2, (i % 2), 1, 1, Qt::AlignLeft);
                         i++;
                 } else {
                         logWidgets.push_back(std::shared_ptr<QWidget>(new ImageLogWidget(item.c_str())));
