@@ -112,8 +112,8 @@ namespace nn {
     int train(int argc, char **argv) {
         printf("Running Neural Net Run");
         // Load dataset
-        DatasetCar dataset(100);
-        dataset.readCsv(50, true);
+        DatasetCar dataset(-1);
+        dataset.readCsv(100, true);
         // Setup the writer
         BoardWriter w;
 

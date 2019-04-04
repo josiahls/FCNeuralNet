@@ -63,6 +63,8 @@ public slots:
         QThread::sleep(3);
 //        m_scene->removeItem(m_imageItem);
         QPixmap p;
+        std::vector<QString> filenames;
+        std::vector<double> accuracies;
 
         while (true) {
 //            QPixmap p("/Users/jlaivins/CLionProjects/NeuralNetDemo/data/steering_dataset/training/images/0049.jpg");
@@ -71,11 +73,11 @@ public slots:
 
             QString line = in.readLine();
 
-            if(!line.isNull()) {
+            if (lineNumber++ == 0 ) {
+                continue;
+            }
 
-                if (lineNumber++ == 0 ) {
-                    continue;
-                }
+            if(!line.isNull()) {
 
                 // We will use these for moving column wise
                 std::stringstream tempStream(line.toStdString());
@@ -86,15 +88,19 @@ public slots:
                     bool isOk = false;
                     if (j == 0) {
                         value = s.toDouble(&isOk);
-                        std::string title("Predicted Steering Angle is: " + std::to_string(value));
+                        std::string title("Predicted Steering Angle is: " + std::to_string(value) + " frame: " + std::to_string(lineNumber));
                         m_label->setText(title.c_str());
+//                        m_label->setText(std::to_string(lineNumber).c_str());
                         // If the file is a string, it is probably the column title
                         if (!isOk) {
                            //this->m_scene->setT(s + " Log");
+                        } else {
+                            accuracies.push_back(value);
                         }
                     } else if (j == 1) {
                         std::cout << " Loading image " << temp << std::endl;
                         p.load(s);
+                        filenames.push_back(s);
                         p = p.scaled(500, 500);
 //                        QPixmap p(s);
 //                        QPixmap image("/Users/jlaivins/CLionProjects/NeuralNetDemo/data/steering_dataset/training/images/0027.jpg");
@@ -118,7 +124,21 @@ public slots:
 //                m_imageItem->setPixmap(p2);
             }
 
-            QThread::msleep(500);
+            // If the line is null, move to looping the video
+            if (line.isNull()) {
+                // If it passes the filename size, loop it back to 0
+                if (lineNumber > filenames.size()) lineNumber = 0;
+                // Update the accuracy label
+                std::string title("Predicted Steering Angle is: " + std::to_string(accuracies.at(lineNumber)) +
+                    " frame: " + std::to_string(lineNumber));
+                m_label->setText(title.c_str());
+                // Update the image / video
+                p.load(filenames.at(lineNumber));
+                p = p.scaled(500, 500);
+                m_videoLabel->setPixmap(p);
+            }
+            // Needs a minimum sleep rate, otherwise closes strangely
+            QThread::msleep(50);
         }
     }
 
