@@ -20,10 +20,23 @@ namespace boardViz {
 
         // Get the most recent directory, and init the the number of graphs in that directory
         std::vector<cv::String> dirs = Logger::getLogDirs();
+        // If the log directory is empty, wait for a directory to be generated.
+        while(dirs.empty()) {
+                std::cout << "The log directory is empty. Waiting for a log to be made..." << std::endl;
+                dirs = Logger::getLogDirs();
+                QThread::sleep(1);
+        }
+
         std::sort(dirs.begin(), dirs.end());
         cv::String mostRecentDir = dirs.back();
         // Get the files in the directory
         std::vector<cv::String> files = Logger::getLogDirs(mostRecentDir);
+        // If the file directory is empty, wait for a file to be generated.
+        while(files.empty()) {
+            std::cout << "The file directory is empty. Waiting for a file to be made..." << std::endl;
+            files = Logger::getLogDirs(mostRecentDir);
+            QThread::sleep(1);
+        }
 
         std::vector<std::shared_ptr<QWidget>> logWidgets;
         int i = 0;

@@ -10,15 +10,19 @@ ImageLogWidget::ImageLogWidget(const QString &logFilePath, QWidget *parent) :
         QWidget(parent),
         m_scene(new QGraphicsScene),
         m_imageItem(new QGraphicsPixmapItem) {
-    QGraphicsView *graphicsView = new QGraphicsView(m_scene);
+    graphicsView = new QGraphicsView(m_scene);
     graphicsView->setMinimumSize(400, 300);
+//    graphicsView->setWindowTitle();
     m_scene->addItem(m_imageItem);
 
-
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    mainLayout->addWidget(graphicsView);
+    m_label = new QLabel("Start", this);
+    m_videoLabel = new QLabel("Loading...", this);
+    mainLayout->addWidget(m_label);
+    mainLayout->addWidget(m_videoLabel);
+//    mainLayout->addWidget(graphicsView);
 
-    m_fileReader = new LogImageFileReader(m_imageItem, m_scene, logFilePath);
+    m_fileReader = new LogImageFileReader(m_imageItem, m_scene, m_label, m_videoLabel, logFilePath);
 
     m_thread = new QThread;
     m_fileReader->moveToThread(m_thread);

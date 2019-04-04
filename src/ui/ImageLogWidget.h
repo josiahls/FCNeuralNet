@@ -6,6 +6,7 @@
 #define NEURALNETDEMO_IMAGELOGWIDGET_H
 
 #include <QWidget>
+#include <QLabel>
 #include <QTextStream>
 #include <QFile>
 #include <QProcess>
@@ -36,10 +37,14 @@ public:
 
 private:
     QGraphicsScene *m_scene;
-    QGraphicsPixmapItem *m_imageItem ;
+    QGraphicsPixmapItem *m_imageItem;
+    QPixmap *m_image;
     QProcess *m_fileReadingProcess = nullptr;
     LogImageFileReader *m_fileReader = nullptr;
     QThread *m_thread = nullptr;
+    QLabel *m_label = nullptr;
+    QLabel *m_videoLabel = nullptr;
+    QGraphicsView *graphicsView = nullptr;
     QFuture<void> fileReaderLoopFuture;
 };
 

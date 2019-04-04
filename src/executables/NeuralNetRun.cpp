@@ -115,7 +115,7 @@ namespace nn {
         DatasetCar dataset(100);
         dataset.readCsv(50, true);
         // Setup the writer
-        BoardWriter w(std::string(), std::string(), false);
+        BoardWriter w;
 
         vector<DatasetCar> d = dataset.split(.7);
         DatasetCar trainDataset = d[0];
@@ -188,8 +188,8 @@ namespace nn {
     }
 
     int run(int argc, char **argv) {
-        DatasetCar dataset(100);
-        dataset.readCsv(50, true);
+        DatasetCar dataset(-1);
+        dataset.readCsv(-1);
         NeuralNet nn = NeuralNet();
         nn.addLayer(64 * 64 * 3, 30, 0, "middle");
         nn.addLayer(30, 120, 0, "middle");

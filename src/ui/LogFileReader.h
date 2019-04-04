@@ -99,7 +99,6 @@ public slots:
 
                 m_axisX->setRange(xMin, xMax);
                 m_axisY->setRange(yMin, yMax);
-
                 m_series->replace(m_buffer);
             }
         }

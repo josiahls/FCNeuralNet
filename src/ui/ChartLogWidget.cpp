@@ -38,8 +38,6 @@ ChartLogWidget::ChartLogWidget(const QString &logFilePath, QWidget *parent) :
     m_fileReader->moveToThread(m_thread);
     connect(m_thread, SIGNAL (started()), m_fileReader, SLOT (process()));
     m_thread->start();
-
-//    this->fileReaderLoopFuture = QtConcurrent::run(this->m_fileReader, &LogFileReader::process);
 }
 
 ChartLogWidget::~ChartLogWidget()
