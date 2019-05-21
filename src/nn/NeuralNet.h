@@ -4,14 +4,32 @@
 // Created by Laivins, Josiah on 2019-03-05.
 //
 
+// For viewing a matrix contents
+//        std::vector<double> actVect;
+//        for(int i=0; i<predY.rows; ++i)
+//            for(int j=0; j<predY.cols; ++j)
+//                actVect.push_back(predY.at<float>(i, j));
+
+// For displaying the matrix as an image
+//            std::printf("\nShowing weight output comparison");
+//            cv::Mat dst;
+//            cv::normalize(delta , dst, 0, 1, cv::NORM_MINMAX);
+//            cv::imshow("result",dst);
+//            cv::waitKey(30);
+
 #ifndef NEURALNETDEMO_NEURALNET_H
 #define NEURALNETDEMO_NEURALNET_H
 
 #include <iostream>
 #include <vector>
+#include <src/utils/DebugHelpers.h>
 #include "../layers/Layer.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv/cxmisc.h>
+#include "opencv2/core.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/videoio.hpp"
 
 
 using namespace std;
@@ -77,23 +95,9 @@ public:
     }
 
     void logBatchRMSEValidation(const cv::Mat &predY, const cv::Mat &y) {
-        std::vector<double> predVect;
-        for(int i=0; i<predY.rows; ++i)
-            for(int j=0; j<predY.cols; ++j)
-                predVect.push_back(predY.at<double>(i, j));
 
-        std::vector<double> actVect;
-        for(int i=0; i<y.rows; ++i)
-            for(int j=0; j<y.cols; ++j)
-                actVect.push_back(y.at<double>(i, j));
-
-        std::vector<double> subVect;
         cv::Mat subMat;
         cv::subtract(predY, y, subMat);
-        for(int i=0; i<predY.rows; ++i)
-            for(int j=0; j<predY.cols; ++j)
-                subVect.push_back(subMat.at<double>(i, j));
-
         cv::Scalar scalarMean = cv::mean(subMat);
         float locRMSE = cv::sqrt(cv::pow((float)scalarMean[0], 2.f));
         // Log that RMSE
@@ -107,15 +111,6 @@ public:
         cv::Mat delta;
         bool started = false;
 
-//        std::vector<double> actVect;
-//        for(int i=0; i<predY.rows; ++i)
-//            for(int j=0; j<predY.cols; ++j)
-//                actVect.push_back(predY.at<double>(i, j));
-//        std::vector<double> actVect2;
-//        for(int i=0; i<y.rows; ++i)
-//            for(int j=0; j<y.cols; ++j)
-//                actVect2.push_back(y.at<double>(i, j));
-
         for (unsigned long i = layers.size() - 1; i > 0; i--) {
             if (!started) {
                 cv::Mat activation = layers.at(i).getActivationSigmoidPrime(layers.at(i).z);
@@ -124,11 +119,14 @@ public:
                 cv::multiply(difference, activation, delta);
                 delta = -1 * delta;
                 started = true;
+
+
             } else {
                 cv::Mat activation = layers.at(i).getActivationSigmoidPrime(layers.at(i).z);
                 cv::Mat transposedW;
                 cv::transpose(layers.at(i).w, transposedW);
                 delta = delta * transposedW;
+
                 cv::multiply(delta, activation, delta);
             }
 
@@ -137,6 +135,7 @@ public:
             cv::Mat gradient = transposedActivation * delta;
             layers.at(i - 1).gradientW = gradient;
         }
+
         return unwrapGradients();
     }
 
@@ -148,6 +147,9 @@ public:
     cv::Mat forward(const cv::Mat &xScaled) {
         layers[0].getForwardOutput(xScaled);
         layers[0].a = xScaled;
+
+        cv::Mat testA = layers[0].a;
+        cv::Mat testW = layers[0].w;
         cv::Mat nextZ = layers[0].a * layers[0].w;
 
         for(int i = 1; i < layers.size(); i++) {
@@ -158,9 +160,9 @@ public:
         return predictedY;
     };
 
-    vector<float> unwrap() {
+    vector<float> unwrap(int start=0) {
         vector<float> params;
-        for (int i = 0; i < layers.size() - 1; i++) {
+        for (int i = start; i < layers.size() - 1; i++) {
             for (int j = 0; j < layers[i].w.rows; j++) {
                 params.insert(params.end(), layers[i].w.ptr<float>(j), layers[i].w.ptr<float>(j)+layers[i].w.cols);
             }
@@ -200,7 +202,7 @@ public:
     }
 
     void minimizeAdamOptimizer(vector<float> grad, const cv::Mat &x, const cv::Mat &y, int numIterations = 15000) {
-        float alpha = 0.0001;
+        float alpha = 0.000001;
         float beta1 = 0.9;
         float beta2 = 0.999;
         float epsilon = 0.00000001;
@@ -244,9 +246,10 @@ public:
             cv::add(sqrtVtHat, epsilon, sqrtVtHatPlusEpsilon);
 
             vector<float> newParams;
+            debug::ImshowMatrixDisplayer(newParams, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
             cv::divide(alphaMtHat, sqrtVtHatPlusEpsilon, divideAlphaMtHatSqrtVtHatPlusEpsilon);
             cv::subtract(params, divideAlphaMtHatSqrtVtHatPlusEpsilon, newParams);
-
+            debug::ImshowMatrixDisplayer(newParams, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
             // Wrap the new weights
             wrap(newParams);
 

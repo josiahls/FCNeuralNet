@@ -11,7 +11,7 @@ ImageLogWidget::ImageLogWidget(const QString &logFilePath, QWidget *parent) :
         m_scene(new QGraphicsScene),
         m_imageItem(new QGraphicsPixmapItem) {
     graphicsView = new QGraphicsView(m_scene);
-    graphicsView->setMinimumSize(400, 300);
+    graphicsView->setMinimumSize(300, 300);
 //    graphicsView->setWindowTitle();
     m_scene->addItem(m_imageItem);
 

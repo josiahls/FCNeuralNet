@@ -98,7 +98,7 @@ public:
         } else {
             // As a note, the cv::String constructor, maybe based on the version I am using,
             // requires character arrays
-            printf("Missing log directory. Making.");
+            printf("\nMissing log directory. Making.");
             cv::utils::fs::createDirectory(fullPath);
         }
 
@@ -190,7 +190,7 @@ public:
         // As a note, the cv::String constructor, maybe based on the version I am using,
         // requires character arrays
         if (!exists(projectLogPath.c_str())) {
-            printf("Missing log directory. Making.");
+            printf("\nMissing log directory. Making.");
             cv::utils::fs::createDirectory(projectPath + rootLogDirName);
         }
 

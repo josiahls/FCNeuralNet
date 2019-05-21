@@ -43,11 +43,11 @@ namespace boardViz {
         for (auto &item : files) {
                 if (item.find("image") == cv::String::npos) {
                         logWidgets.push_back(std::shared_ptr<QWidget>(new ChartLogWidget(item.c_str())));
-                        mainLayout->addWidget(logWidgets.back().get(), i / 2, (i % 2), 1, 1, Qt::AlignLeft);
+                        mainLayout->addWidget(logWidgets.back().get(), i / 3, (i % 3), 1, 1, Qt::AlignLeft);
                         i++;
                 } else {
                         logWidgets.push_back(std::shared_ptr<QWidget>(new ImageLogWidget(item.c_str())));
-                        mainLayout->addWidget(logWidgets.back().get(), i / 2, (i % 2), 1, 1, Qt::AlignLeft);
+                        mainLayout->addWidget(logWidgets.back().get(), i / 3, (i % 3), 1, 1, Qt::AlignLeft);
                         i++;
                 }
         }

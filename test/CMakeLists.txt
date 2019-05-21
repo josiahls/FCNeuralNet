@@ -38,6 +38,7 @@ set(SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/layers/Dimension.h
         ${PROJECT_SOURCE_DIR}/src/layers/Layer.cpp
         ${PROJECT_SOURCE_DIR}/src/utils/DatasetCar.h
+        ${PROJECT_SOURCE_DIR}/src/utils/DebugHelpers.h
         ${PROJECT_SOURCE_DIR}/src/executables/NeuralNetRun.cpp
         ${PROJECT_SOURCE_DIR}/src/utils/BoardWriter.cpp
         ${PROJECT_SOURCE_DIR}/src/utils/Logger.cpp)

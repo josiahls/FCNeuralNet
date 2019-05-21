@@ -9,6 +9,10 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv/cxmisc.h>
 #include "Layer.h"
+#include "opencv2/core.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/videoio.hpp"
 
 Layer::Layer(int size, int nextLayerSize, int seed, std::string randomWeightMode)
     : size(size), nextLayerSize(nextLayerSize), seed(seed), randomWeightMode(std::move(randomWeightMode)) {
@@ -17,11 +21,14 @@ Layer::Layer(int size, int nextLayerSize, int seed, std::string randomWeightMode
             .currentLayerSize = size,
             .nextLayerSize = nextLayerSize
     };
+    this->d = d;
     // Initialize the weight matrix
     this->w = Layer::getWeightInitialization(d, std::string());
     this->a = Layer::getWeightInitialization(d, "zeros");
     this->z = Layer::getWeightInitialization(d, "zeros");
+
     this->gradientW = this->w;
+
 }
 
 cv::Mat Layer::getWeightInitialization(Dimension dimension, std::string mode) {
@@ -43,7 +50,7 @@ cv::Mat Layer::getWeightInitialization(Dimension dimension, std::string mode) {
 
     if (mode == "random") {
         // Produce a random distribution of weights from 0 to 1
-        std::uniform_real_distribution<float> distribution(0,1);
+        std::uniform_real_distribution<float> distribution(-1,1);
         bind = std::bind(distribution, generator);
     } else if (mode == "middle") {
         bind = std::bind([](float a){return a; }, .5);
@@ -87,8 +94,25 @@ cv::Mat Layer::getActivationSigmoid(cv::Mat z) {
     cv::Mat dividedMat;
     // FORMULA 2: (a = f(z))
     cv::multiply(cv::Scalar(-1), z, multipliedMat);
+    std::vector<float> actVect2z;
+    for(int k=0; k<z.rows; ++k)
+        for(int j=0; j<z.cols; ++j)
+            actVect2z.push_back(z.at<float>(k, j));
+    std::vector<float> actVect2multipliedMat;
+    for(int k=0; k<multipliedMat.rows; ++k)
+        for(int j=0; j<multipliedMat.cols; ++j)
+            actVect2multipliedMat.push_back(multipliedMat.at<float>(k, j));
+
     cv::exp(multipliedMat, newA);
     cv::divide(cv::Scalar(1), (cv::Scalar(1) + newA), dividedMat);
+    std::vector<float> actVect2newA;
+    for(int k=0; k<newA.rows; ++k)
+        for(int j=0; j<newA.cols; ++j)
+            actVect2newA.push_back(newA.at<float>(k, j));
+    std::vector<float> actVect2dividedMat;
+    for(int k=0; k<dividedMat.rows; ++k)
+        for(int j=0; j<dividedMat.cols; ++j)
+            actVect2dividedMat.push_back(dividedMat.at<float>(k, j));
     return dividedMat;
 }
 

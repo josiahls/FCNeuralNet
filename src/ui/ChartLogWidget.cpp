@@ -11,7 +11,7 @@ ChartLogWidget::ChartLogWidget(const QString &logFilePath, QWidget *parent) :
         m_chart(new QChart),
         m_series(new QLineSeries) {
     QChartView *chartView = new QChartView(m_chart);
-    chartView->setMinimumSize(400, 300);
+    chartView->setMinimumSize(300, 300);
     m_chart->addSeries(m_series);
     QValueAxis *axisX = new QValueAxis;
     axisX->setRange(0, 20);

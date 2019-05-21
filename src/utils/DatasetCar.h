@@ -33,6 +33,11 @@ struct DatasetCarElement {
     float steeringAngle;
 };
 
+struct DatasetBalanceItem {
+    int count;
+    float value;
+};
+
 class DatasetCar {
 public:
     std::string projectRoot;
@@ -42,15 +47,15 @@ public:
     std::vector<float> featureValues;
     std::vector<unsigned long> indexes;
 
-    double minFeatureValue;
-    double maxFeatureValue;
+    float minFeatureValue;
+    float maxFeatureValue;
 
     long readableSize;
 
     DatasetCar(long readableSize=0) {
         projectRoot = "NeuralNetDemo";
         csvDir = "steering_dataset/training";
-        csvName = "steering_angles.csv";
+        csvName = "steering_angles_sanity.csv";
 
         this->readableSize = readableSize;
     }
@@ -66,7 +71,8 @@ public:
         };
     }
 
-    void readCsv(int numRows = -1, bool shuffle = false, int seed = -1) {
+    void readCsv(int numRows = -1, bool shuffle = false, int seed = -1, bool balance = false,
+            std::string method="duplicate") {
         filenames.clear();
         featureValues.clear();
 
@@ -107,23 +113,136 @@ public:
         }
 
         csvReader.close();
+
+        double min, max;
         // Get the min and maxes of the features for normalization
-        cv::minMaxLoc(featureValues, &minFeatureValue, &maxFeatureValue);
+        cv::minMaxLoc(featureValues, &min, &max);
+        minFeatureValue = (float) min;
+        maxFeatureValue = (float) max;
+
+        // If balancing is requested then:
+        if (balance) balanceDataset("duplicate");
 
         // If specified, shuffle
         indexes.resize(filenames.size());
         std::iota(indexes.begin(), indexes.end(), 0);
-        if (shuffle) {
 
+        if (shuffle) {
             // Handle random initialization
             std::default_random_engine generator(std::random_device{}());
-            if (seed != -1) {
-                // To help with debugging, the seed can be defined. The unit test cases take this and
-                // set the seed to 0
-                generator.seed(static_cast<unsigned int>(seed));
-            }
+            // To help with debugging, the seed can be defined. The unit test cases take this and
+            // set the seed to 0
+            if (seed != -1) generator.seed(static_cast<unsigned int>(seed));
+
             std::shuffle(indexes.begin(), indexes.end(), generator);
         }
+    }
+
+    /**
+     * balanceDataset will evaluate the data that has been loaded, and try to make the dataset balanced.
+     *
+     * This is done via either deletion or duplication.
+     *
+     * @param method - Can either be "delete" or "duplicate" or "middle". Delete would be the most damaging way
+     *                 of improving the dataset due to deleting large numbers of data. "duplicate"
+     *                 will duplicate under-represented data which can grow the dataset massively.
+     *                 "middle" will try to change the data to the average unique y count.
+     */
+    void balanceDataset(std::string method = "delete", float tolerance=5) {
+        // Get distribution of values
+        std::vector<DatasetBalanceItem> counts;
+
+        // Log the counts of items and their values
+        for (unsigned long i =0; i < this->featureValues.size(); i++) {
+            bool found = false;
+            // Is this value in the counts vector?
+            for (auto& item : counts) {
+                if (std::abs(this->featureValues.at(i) - item.value) < tolerance) {
+                    item.count++;
+                    found = true;
+                    break;
+                }
+            }
+            // If not found then we want to add this to the counts vector
+            if (!found) counts.push_back(DatasetBalanceItem{0, this->featureValues.at(i)});
+        }
+
+        // If specified, shuffle
+        std::vector<unsigned long> preDatasetAugIndexes;
+        preDatasetAugIndexes.resize(filenames.size());
+        std::iota(preDatasetAugIndexes.begin(), preDatasetAugIndexes.end(), 0);
+
+        // Handle random initialization
+        std::default_random_engine generator(std::random_device{}());
+        std::shuffle(preDatasetAugIndexes.begin(), preDatasetAugIndexes.end(), generator);
+
+        // Distribute
+        int maxCount = std::max_element(counts.begin(), counts.end(),
+                [](const DatasetBalanceItem &c1, const DatasetBalanceItem &c2){
+            return c1.count < c2.count;
+        }).base()->count;
+
+
+        int totalCount = 0;
+        for (auto& item: counts) {
+            totalCount += item.count;
+        }
+        int average = totalCount / counts.size();
+        if (method == "middle") maxCount = average;
+
+        std::vector<cv::String> tempFilenames;
+        std::vector<float> tempFeatureValues;
+
+        // Go through the counts and duplicate under-represented entries
+        for (auto &item : counts) {
+            item.count = 0;
+            // Go through the random indices
+            for (unsigned long i =0; i < preDatasetAugIndexes.size(); i++) {
+                long index = preDatasetAugIndexes.at(i);
+
+                // If the item is already at the max, then just continue
+                if (item.count == maxCount) break;
+
+                // If the item is already at the max, then just continue
+                if (item.count < maxCount && i == preDatasetAugIndexes.size()-1) i = 0;
+
+                if (std::abs(this->featureValues.at(index) - item.value) < tolerance) {
+                    tempFeatureValues.push_back(this->featureValues.at(index));
+                    tempFilenames.push_back(this->filenames.at(index));
+                    item.count++;
+                }
+            }
+//            // If the item is already at the max, then just continue
+//            if (item.count == maxCount) continue;
+//
+//            // Otherwise, we are going to find the features that have the value within that tolerance and duplicate them
+//            for (unsigned long i =0; i < preDatasetAugIndexes.size(); i++) {
+//                long index = preDatasetAugIndexes.at(i);
+//
+//                // If the item is already at the max, then just continue
+//                if (item.count == maxCount) break;
+//
+//                // If the item is already at the max, then just continue
+//                if (item.count != maxCount && i == preDatasetAugIndexes.size()-1) i = 0;
+//
+//                // If they are within the tolerance, add them again to the base vector.
+//                // Since we shuffled the indexes, the duplicated entries should be random enough to avoid bias.
+//                if (std::abs(this->featureValues.at(index) - item.value) < tolerance) {
+//                    if (item.count < maxCount && (method == "duplicate" || method == "middle")) {
+//                        this->featureValues.push_back(this->featureValues.at(index));
+//                        this->filenames.push_back(this->filenames.at(index));
+//                        item.count++;
+//                    } else if (item.count > maxCount && method == "middle") {
+//                        this->featureValues.push_back(this->featureValues.at(index));
+//                        this->filenames.push_back(this->filenames.at(index));
+//                        item.count--;
+//                    }
+//                }
+//            }
+        }
+        this->filenames = tempFilenames;
+        this->featureValues = tempFeatureValues;
+
     }
 
     std::string getCurrentPath(std::string lookingFor = "data") {

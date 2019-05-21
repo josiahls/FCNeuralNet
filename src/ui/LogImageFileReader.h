@@ -127,7 +127,7 @@ public slots:
             // If the line is null, move to looping the video
             if (line.isNull()) {
                 // If it passes the filename size, loop it back to 0
-                if (lineNumber > filenames.size()) lineNumber = 0;
+                if (lineNumber >= filenames.size()) lineNumber = 0;
                 // Update the accuracy label
                 std::string title("Predicted Steering Angle is: " + std::to_string(accuracies.at(lineNumber)) +
                     " frame: " + std::to_string(lineNumber));

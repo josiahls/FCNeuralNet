@@ -14,6 +14,7 @@ public:
     int size;
     int nextLayerSize;
     int seed;
+    Dimension d;
     std::string randomWeightMode;
     cv::Mat w;
     cv::Mat a;

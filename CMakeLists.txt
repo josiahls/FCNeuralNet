@@ -35,6 +35,7 @@ set(SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/utils/DatasetCar.h
         ${PROJECT_SOURCE_DIR}/src/utils/BoardWriter.cpp
         ${PROJECT_SOURCE_DIR}/src/utils/Logger.cpp
+        ${PROJECT_SOURCE_DIR}/src/utils/DebugHelpers.h
         ${PROJECT_SOURCE_DIR}/src/executables/NeuralNetRun.cpp
         ${PROJECT_SOURCE_DIR}/src/ui/LogImageFileReader.cpp
         ${PROJECT_SOURCE_DIR}/src/ui/LogFileReader.cpp
@@ -49,34 +50,6 @@ add_subdirectory(test)
 target_link_libraries(NeuralNetDemo Qt5::Charts)
 target_link_libraries(NeuralNetDemo Qt5::Concurrent)
 target_link_libraries(NeuralNetDemo Qt5::Widgets)
-
-
-
-
-
-#set (MyProjectLib_src
-#        ${PROJECT_SOURCE_DIR}/src/executables/VisualizationBoard.cpp
-#        ${PROJECT_SOURCE_DIR}/src/ui/ChartLogWidget.cpp
-#        ${PROJECT_SOURCE_DIR}/src/ui/MainWindow.cpp
-#        )
-#set (MyProjectLib_hdr
-#        ${PROJECT_SOURCE_DIR}/src/executables/VisualizationBoard.h
-#        ${PROJECT_SOURCE_DIR}/src/ui/ChartLogWidget.h
-#        ${PROJECT_SOURCE_DIR}/src/ui/MainWindow.h
-#        )
-#set (MyProjectBin_src ${PROJECT_SOURCE_DIR}/main.cpp)
-#
-#qt5_wrap_cpp(MyProjectLib_hdr_moc ${MyProjectLib_hdr})
-#
-#include_directories (${PROJECT_SOURCE_DIR})
-#include_directories (${PROJECT_BINARY_DIR})
-#
-#add_library (MyProjectLib SHARED
-#        ${MyProjectLib_src}
-#        ${MyProjectLib_hdr_moc}
-#        )
-#
-#target_link_libraries (NeuralNetDemo MyProjectLib)
 ##################################################
 
 # Enable C++11
