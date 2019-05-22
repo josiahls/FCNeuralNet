@@ -48,6 +48,31 @@ TEST(Layer, checkActivationSigmoid) {
     ASSERT_NEAR(result.at<float>(2,1), 0.54983, 0.001);
 }
 
+TEST(Layer, checkActivationTanhPrime) {
+    Layer layer = Layer(5, 5, 0, "middle");
+
+    cv::Mat testMat = (cv::Mat_<float>(3, 1) << 0.94987241, 0.72828153, 1.58787238);
+    cv::Mat result = layer.getActivationTanhPrime(testMat);
+
+    ASSERT_NEAR(result.at<float>(0,0), 0.45280651, 0.001);
+    ASSERT_NEAR(result.at<float>(1,0), 0.61309997, 0.001);
+    ASSERT_NEAR(result.at<float>(2,0), 0.15392661, 0.001);
+}
+
+TEST(Layer, checkActivationTanh) {
+    Layer layer = Layer(5, 5, 0, "middle");
+    cv::Mat testMat = (cv::Mat_<float>(3, 2) << 0.3, 0.5, 0.5, 0.1, 1, 0.2);
+    cv::Mat result = layer.getActivationTanh(testMat);
+    std::vector<float> ur = debug::unwrapMat(result);
+
+    ASSERT_NEAR(result.at<float>(0,0), 0.29131261, 0.001);
+    ASSERT_NEAR(result.at<float>(0,1), 0.46211716, 0.001);
+    ASSERT_NEAR(result.at<float>(1,0), 0.46211716, 0.001);
+    ASSERT_NEAR(result.at<float>(1,1), 0.09966799, 0.001);
+    ASSERT_NEAR(result.at<float>(2,0), 0.76159416, 0.001);
+    ASSERT_NEAR(result.at<float>(2,1), 0.19737532, 0.001);
+}
+
 TEST(Layer, checkFieldInitsWeights) {
     // Init a small layer with a 2d Matrix with a 0 seed
     // so that we get the same behavior every time.

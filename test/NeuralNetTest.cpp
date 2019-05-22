@@ -8,15 +8,28 @@
 
 TEST(NeuralNet, NeuralNetTrainRMSETest) {
     NeuralNet nn = NeuralNet();
-    nn.addLayer(2, 3, 0, "middle");
-    nn.addLayer(3, 1, 0, "middle");
-    nn.addLayer(1, 1, 0, "middle");
+    nn.addLayer(2, 5, 0, "glorot", "tanh");
+    nn.addLayer(5, 1, 0, "glorot", "tanh");
+    nn.addLayer(1, 1, 0, "glorot", "tanh");
 
-    cv::Mat scaledX = (cv::Mat_<float>(3, 2) << 0.3, 0.5, 0.5, 0.1, 1, 0.2);
-    cv::Mat scaledY = (cv::Mat_<float>(3, 1) << 0.75, 0.82, 0.93);
+//    cv::Mat scaledX = (cv::Mat_<float>(3, 2) << 0.3, 0.5, 0.5, 0.1, 1, 0.2);
+//    cv::Mat scaledY = (cv::Mat_<float>(3, 1) << 0.75, 0.93, 0.82);
+
+    cv::Mat scaledX = (cv::Mat_<float>(5, 2) << 0.9, 0.9, 0.8, 0.8, 0.7, 0.7, 0.9, 0.7, .7, 0.9);
+    cv::Mat scaledY = (cv::Mat_<float>(5, 1) << 0.7, 0.8, 0.9, 0.1, 0.2);
 
     nn.train(scaledX, scaledY);
+    nn.train(scaledX, scaledY);
+    nn.train(scaledX, scaledY);
+    nn.train(scaledX, scaledY);
+    cv::Mat prediction = nn.predict(scaledX);
 
+    debug::ImshowMatrixDisplayer(nn.layers[0].w, std::tuple<int, int, int>(0, 0, 900), 10, false, false);
+    debug::ImshowMatrixDisplayer(nn.layers[1].w, std::tuple<int, int, int>(0, 0, 900), 10, false, false);
+    std::vector<float> y = debug::unwrapMat(prediction);
+    std::vector<float> x = debug::unwrapMat(scaledX);
+    std::vector<float> w1 = debug::unwrapMat(nn.layers[0].w);
+    std::vector<float> w2 = debug::unwrapMat(nn.layers[1].w);
     ASSERT_NEAR(nn.rmse.back(), 0.004, 0.004);
 }
 
@@ -129,6 +142,7 @@ TEST(NeuralNet, NeuralNetPredictTest) {
     ASSERT_EQ(predY.rows, 3);
     ASSERT_EQ(predY.cols, 1);
 
+//    debug::unwrapMat(predY);
     ASSERT_NEAR(predY.at<float>(0, 0), .43, .3);
     ASSERT_NEAR(predY.at<float>(1, 0), .43, .3);
     ASSERT_NEAR(predY.at<float>(2, 0), .43, .3);

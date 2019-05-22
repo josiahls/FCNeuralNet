@@ -7,6 +7,7 @@
 
 
 #include <opencv2/core/mat.hpp>
+#include "../utils/DebugHelpers.h"
 #include "Dimension.h"
 
 class Layer {
@@ -14,6 +15,7 @@ public:
     int size;
     int nextLayerSize;
     int seed;
+    std::string activationType;
     Dimension d;
     std::string randomWeightMode;
     cv::Mat w;
@@ -36,7 +38,8 @@ public:
      * @param seed
      * @param randomWeightMode
      */
-    Layer(int size, int nextLayerSize, int seed = -1, std::string randomWeightMode = "");
+    Layer(int size, int nextLayerSize, int seed = -1, std::string randomWeightMode = "",
+            std::string activation="sigmoid");
 
     /**
      * Inits the w matrix based on user input.
@@ -53,6 +56,14 @@ public:
     cv::Mat getWeightInitialization(Dimension dimension, std::string mode = "");
 
     cv::Mat getForwardOutput(cv::Mat z);
+
+    cv::Mat getActivation(cv::Mat z);
+
+    cv::Mat getActivationPrime(cv::Mat z);
+
+    cv::Mat getActivationTanh(cv::Mat z);
+
+    cv::Mat getActivationTanhPrime(cv::Mat z);
 
     cv::Mat getActivationSigmoid(cv::Mat z);
 

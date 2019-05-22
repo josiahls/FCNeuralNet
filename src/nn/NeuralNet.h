@@ -22,7 +22,7 @@
 
 #include <iostream>
 #include <vector>
-#include <src/utils/DebugHelpers.h>
+#include "../utils/DebugHelpers.h"
 #include "../layers/Layer.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv/cxmisc.h>
@@ -64,7 +64,13 @@ public:
 
         cv::Mat subtractionToPower;
         cv::pow(predY - y, 2, subtractionToPower);
-        return cv::sum(subtractionToPower)[0] * 0.5;
+        std::vector<float> prediction = debug::unwrapMat(predY);
+        std::vector<float> acty = debug::unwrapMat(y);
+        std::vector<float> subtopow = debug::unwrapMat(subtractionToPower);
+
+        float summation = static_cast<float>(cv::sum(subtractionToPower)[0]) * 0.5f;
+//        debug::print(subtopow);
+        return summation;
     }
 
     void train(const cv::Mat &x, const cv::Mat &y, int numIterations = 15000, int batchSize = -1) {
@@ -108,40 +114,51 @@ public:
     vector<float> costFunctionPrime(const cv::Mat &x, const cv::Mat &y) {
 
         cv::Mat predY = forward(x);
+        std::vector<float> prediction = debug::unwrapMat(predY);
+        std::vector<float> actual = debug::unwrapMat(y);
         cv::Mat delta;
         bool started = false;
 
         for (unsigned long i = layers.size() - 1; i > 0; i--) {
             if (!started) {
-                cv::Mat activation = layers.at(i).getActivationSigmoidPrime(layers.at(i).z);
+                cv::Mat activation = layers.at(i).getActivationPrime(layers.at(i).z);
                 cv::Mat difference;
                 cv::subtract(y, predY, difference);
+                std::vector<float> diff = debug::unwrapMat(difference);
+                std::vector<float> act = debug::unwrapMat(activation);
                 cv::multiply(difference, activation, delta);
                 delta = -1 * delta;
                 started = true;
 
 
             } else {
-                cv::Mat activation = layers.at(i).getActivationSigmoidPrime(layers.at(i).z);
+                cv::Mat activation = layers.at(i).getActivationPrime(layers.at(i).z);
                 cv::Mat transposedW;
                 cv::transpose(layers.at(i).w, transposedW);
+                std::vector<float> del = debug::unwrapMat(delta);
                 delta = delta * transposedW;
 
                 cv::multiply(delta, activation, delta);
             }
 
+            std::vector<float> del = debug::unwrapMat(delta);
             cv::Mat transposedActivation;
             cv::transpose(layers.at(i - 1).a, transposedActivation);
-            cv::Mat gradient = transposedActivation * delta;
+            std::vector<float> ta = debug::unwrapMat(transposedActivation);
+            cv::Mat gradient = transposedActivation * delta; // Buggy multiplication (kills negatives?)
+//            cv::Mat gradient;
+//            cv::multiply(transposedActivation, delta, gradient);
+            std::vector<float> grad = debug::unwrapMat(gradient);
             layers.at(i - 1).gradientW = gradient;
+            std::vector<float> gradw = debug::unwrapMat(gradient);
         }
 
         return unwrapGradients();
     }
 
     void addLayer(int size, int nextLayerSize, int seed = -1,
-            std::string randomWeightMode = "") {
-        layers.emplace_back(Layer(size, nextLayerSize,seed, std::move(randomWeightMode)));
+            std::string randomWeightMode = "", std::string activation = "") {
+        layers.emplace_back(Layer(size, nextLayerSize,seed, std::move(randomWeightMode), activation));
     }
 
     cv::Mat forward(const cv::Mat &xScaled) {
@@ -157,6 +174,8 @@ public:
         }
 
         cv::Mat predictedY = layers[layers.size()-1].a;
+        std::vector<float> pry = debug::unwrapMat(predictedY);
+//        debug::ImshowMatrixDisplayer(predictedY, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
         return predictedY;
     };
 
@@ -186,6 +205,7 @@ public:
 
         vector<float>::const_iterator first;
         vector<float>::const_iterator last;
+        vector<float>  m1;
         for (int i = 0; i < layers.size() - 1; i++) {
 
             if (i == 0) {
@@ -198,11 +218,13 @@ public:
 
             vector<float> slice(first, last);
             layers[i].w = cv::Mat(slice, true).reshape(0, layers[i].w.rows);
+            m1 = debug::unwrapMat(layers[i].w);
+
         }
     }
 
     void minimizeAdamOptimizer(vector<float> grad, const cv::Mat &x, const cv::Mat &y, int numIterations = 15000) {
-        float alpha = 0.000001;
+        float alpha = 0.0001;
         float beta1 = 0.9;
         float beta2 = 0.999;
         float epsilon = 0.00000001;
@@ -246,10 +268,12 @@ public:
             cv::add(sqrtVtHat, epsilon, sqrtVtHatPlusEpsilon);
 
             vector<float> newParams;
-            debug::ImshowMatrixDisplayer(newParams, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
+//            debug::ImshowMatrixDisplayer(this->layers[0].w, std::tuple<int, int, int>(0, 0, 900), 5.5, false, true);
+//            debug::unwrapMat(this->layers[0].w);
+//            debug::unwrapMat(this->layers[1].w);
             cv::divide(alphaMtHat, sqrtVtHatPlusEpsilon, divideAlphaMtHatSqrtVtHatPlusEpsilon);
             cv::subtract(params, divideAlphaMtHatSqrtVtHatPlusEpsilon, newParams);
-            debug::ImshowMatrixDisplayer(newParams, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
+//            debug::ImshowMatrixDisplayer(newParams, std::tuple<int, int, int>(0, 0, 900), 5.5, false, true);
             // Wrap the new weights
             wrap(newParams);
 

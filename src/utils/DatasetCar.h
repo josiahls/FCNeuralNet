@@ -52,10 +52,11 @@ public:
 
     long readableSize;
 
-    DatasetCar(long readableSize=0) {
-        projectRoot = "NeuralNetDemo";
-        csvDir = "steering_dataset/training";
-        csvName = "steering_angles_sanity.csv";
+    DatasetCar(long readableSize=0, std::string csvName="steering_angles.csv",
+            std::string csvDir="steering_dataset/training", std::string projectRoot="NeuralNetDemo") {
+        this->projectRoot = projectRoot;
+        this->csvDir = csvDir;
+        this->csvName = csvName;
 
         this->readableSize = readableSize;
     }

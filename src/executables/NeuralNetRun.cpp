@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include <src/utils/DebugHelpers.h>
+#include "../utils/DebugHelpers.h"
 #include "../nn/NeuralNet.h"
 #include "NeuralNetRun.h"
 #include "../utils/DatasetCar.h"
@@ -16,7 +16,7 @@
 
 namespace nn {
 
-    auto imageDimension = std::make_tuple(32, 32, 3);
+    auto imageDimension = std::make_tuple(32, 32, 1);
 
     cv::Mat getImage(DatasetCar& dataset, int index, int h=std::get<0>(imageDimension),
             int w=std::get<1>(imageDimension)) {
@@ -25,8 +25,10 @@ namespace nn {
         cv::Mat imageNormalized;
         image.convertTo(imageNormalized, CV_32F, 1.0 / 255, 0);
         cv::resize(imageNormalized, imageNormalized, cv::Size(h, w));
+        cv::cvtColor(imageNormalized, imageNormalized, CV_BGR2GRAY);
+        cv::Mat normedImage = imageNormalized.reshape(1,1);
 
-        return imageNormalized.reshape(1,1);
+        return normedImage;
     }
 
     float getNormalY(DatasetCar& dataset, int index) {
@@ -70,12 +72,12 @@ namespace nn {
         cv::minMaxLoc(predY.row(0), &min, &max, &predMinLoc, &predMaxLoc);
         predictedLocation = predMaxLoc.x;
         double predictedAngle = predictedLocation / float(bins);
-        predictedAngle = (predictedAngle * dataset.maxFeatureValue) - dataset.minFeatureValue;
+        predictedAngle = (predictedAngle * (dataset.maxFeatureValue - dataset.minFeatureValue) + dataset.minFeatureValue);
 
         return predictedAngle;
     }
 
-    float getAccuracy(cv::Mat predY, cv::Mat y, DatasetCar validationDataset, int bins, float tolarance=5) {
+    float getAccuracyFromBinned(cv::Mat predY, cv::Mat y, DatasetCar validationDataset, int bins, float tolarance = 5) {
         vector<int> predictedLocations;
         vector<int> actualLocations;
 
@@ -115,11 +117,45 @@ namespace nn {
         return (acc / absOfAngles.cols) * 100;
     }
 
+    float getAccuracyFromContinuous(cv::Mat predY, cv::Mat y, DatasetCar validationDataset, float tolarance = 5) {
+        vector<float> predictedLocations;
+        vector<float> actualLocations;
+
+        // Iterate through each row and get the location of the max
+        for(int i = 0; i < predY.rows; i++) {
+            predictedLocations.push_back(predY.at<float>(i, 0));
+            actualLocations.push_back(y.at<float>(i, 0));
+        }
+        // Convert each to their actual angles
+        vector<float> predictedAngles;
+        vector<float> actualAngles;
+        for (long i = 0; i < predictedLocations.size(); i++) {
+            float predictedAngle = predictedLocations.at(i);
+            float actualAngle = actualLocations.at(i);
+            predictedAngles.push_back(static_cast<float &&>(predictedAngle * (validationDataset.maxFeatureValue - validationDataset.minFeatureValue) + validationDataset.minFeatureValue));
+            actualAngles.push_back(static_cast<float &&>(actualAngle * (validationDataset.maxFeatureValue - validationDataset.minFeatureValue) + validationDataset.minFeatureValue));
+        }
+        // Determine accuracy of angles within a tolerance
+        cv::Mat absOfAngles;
+        cv::subtract(predictedAngles, actualAngles, absOfAngles);
+        absOfAngles = cv::abs(absOfAngles);
+        float acc = 0;
+
+        for (int i = 0; i < absOfAngles.cols; i++) {
+            float value = absOfAngles.at<float>(0, i);
+            if (value < tolarance) acc++;
+        }
+
+
+        return (acc / absOfAngles.cols) * 100;
+    }
+
+
     int train(int argc, char **argv) {
         printf("Running Neural Net Run");
         // Load dataset
-        DatasetCar dataset(-1);
-        dataset.readCsv(100);
+        DatasetCar dataset(-1, "steering_angles.csv");
+        dataset.readCsv(-1, true, -1, true);
         // Setup the writer
         BoardWriter w;
 
@@ -130,16 +166,17 @@ namespace nn {
         // Create neural net
         NeuralNet nn = NeuralNet();
         nn.addLayer(std::get<0>(imageDimension) * std::get<1>(imageDimension) * std::get<2>(imageDimension),
-                1, 0, "glorot");
-        nn.addLayer(1, 60, 0, "glorot");
-        nn.addLayer(60, 1, 0, "glorot");
-
+                60, 0, "glorot", "tanh");
+        nn.addLayer(60, 1, 0, "glorot", "tanh");
+//        nn.addLayer(60, 1, 0, "glorot", "tanh");
+        printf("Reading stuff");
         // Init the validation variables
         cv::Mat validationX;
         cv::Mat validationY;
         for (int i = 0; i < validationDataset.getSize(); i++) {
             validationX.push_back(getImage(validationDataset, i));
             validationY.push_back(getBinnedY(getNormalY(validationDataset, i), 60));
+//            validationY.push_back(getNormalY(validationDataset, i));
         }
 
         std::vector<float> validationAccuracy = vector<float>();
@@ -149,14 +186,14 @@ namespace nn {
         cv::Mat finalPredY;
 
         // Define epochs
-        int epochs = 30;
+        int epochs = 10;
         for (int epoch = 0; epoch < epochs; epoch++) {
             printf("\nStarting epoch %i\n", epoch);
 
             cv::Mat y;
             cv::Mat predY;
 
-            int batchSize = 1;
+            int batchSize = 2;
             for (int i = 0; i < trainDataset.getSize(); i += batchSize) {
                 cv::Mat batchX;
                 cv::Mat batchY;
@@ -167,24 +204,31 @@ namespace nn {
                      imageLoc++, slot++) {
                     try {
                         batchX.push_back(getImage(trainDataset, imageLoc));
-                        batchY.push_back(getGuassianBinnedY(getBinnedY(getNormalY(trainDataset, imageLoc), 60), 10));
+                        batchY.push_back(getGuassianBinnedY(getBinnedY(getNormalY(trainDataset, imageLoc), 60), 3));
+//                        batchY.push_back(getNormalY(trainDataset, imageLoc));
                     } catch(cv::Exception) {
                         printf("Derp something happened");
                     }
                 }
-
+                printf("here1");
                 y.push_back(batchY);
+                printf("here2");
                 predY.push_back(nn.forward(batchX));
-                debug::ImshowMatrixDisplayer(nn.layers[1].w, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
+//                debug::ImshowMatrixDisplayer(nn.layers[1].w, std::tuple<int, int, int>(0, 0, 0), 5.5, True, false);
 
                 try {
-                    nn.train(batchX, batchY, 300, batchSize);
+                    nn.train(batchX, batchY, 3 * batchSize, batchSize);
                 } catch(cv::Exception()) {
                     printf("Derp something happened");
                 }
-                debug::ImshowMatrixDisplayer(nn.layers[1].w, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
+
+                std::vector<float> prediction = debug::unwrapMat(nn.predict(batchX));
+                std::vector<float> actual = debug::unwrapMat(batchY);
+//                debug::ImshowMatrixDisplayer(nn.layers[0].w, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
 
             }
+//            debug::ImshowMatrixDisplayer(nn.layers[0].w, imageDimension, 5.5, true, true);
+//            debug::ImshowMatrixDisplayer(nn.layers[1].w, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
 
             y.copyTo(finalY);
             predY.copyTo(finalPredY);
@@ -193,8 +237,8 @@ namespace nn {
             nn.logBatchRMSE(predY, y);
             cv::Mat validationPredY = nn.forward(validationX);
             nn.logBatchRMSEValidation(validationPredY, validationY);
-            validationAccuracy.push_back(getAccuracy(validationPredY, validationY, validationDataset, 60));
-            trainAccuracy.push_back(getAccuracy(predY, y, trainDataset, 60));
+            validationAccuracy.push_back(getAccuracyFromBinned(validationPredY, validationY, validationDataset, 60));
+            trainAccuracy.push_back(getAccuracyFromBinned(predY, y, trainDataset, 60));
 
             w.write("RMSE", nn.rmse.back(), 0);
             w.write("Validation RMSE", nn.rmseValidate.back(), 0);
@@ -215,20 +259,21 @@ namespace nn {
         cv::normalize(finalPredY, dst, 0, 1, cv::NORM_MINMAX);
         cv::normalize(finalY, dst2, 0, 1, cv::NORM_MINMAX);
         cv::hconcat(dst,dst2,dst);
-        cv::imshow("result",dst);
-        cv::waitKey(0);
+        debug::ImshowMatrixDisplayer(dst, std::tuple<int, int, int>(0, 0, 0), 2, true, false);
+
+
 
         return 0;
     }
 
     int run(int argc, char **argv) {
-        DatasetCar dataset(-1);
+        DatasetCar dataset(-1, "steering_angles.csv");
         dataset.readCsv(-1);
         NeuralNet nn = NeuralNet();
-        nn.addLayer(std::get<0>(imageDimension) * std::get<1>(imageDimension)* std::get<2>(imageDimension), 1,
-                0, "middle");
-        nn.addLayer(1, 60, 0, "glorot");
+        nn.addLayer(std::get<0>(imageDimension) * std::get<1>(imageDimension)* std::get<2>(imageDimension), 60,
+                0, "glorot");
         nn.addLayer(60, 1, 0, "glorot");
+//        nn.addLayer(60, 1, 0, "glorot");
         // Get the model params
         std::vector<cv::String> dirs = Logger::getLogDirs("models");
         std::sort(dirs.begin(), dirs.end());
@@ -272,18 +317,28 @@ namespace nn {
         std::vector<std::string> validationOriginalImage = vector<std::string>();
         cv::Mat validationPredY = nn.forward(validationX);
 
-        std::printf("\nShowing weight output comparison");
-        cv::Mat dst;
-        cv::normalize(nn.layers[0].w, dst, 0, 1, cv::NORM_MINMAX);
-        dst = dst.reshape(std::get<2>(imageDimension), std::get<0>(imageDimension));
-        cv::imshow("result",dst);
-        cv::waitKey(0);
+        std::vector<float> predy = debug::unwrapMat(validationPredY);
+
+//        std::printf("\nShowing weight output comparison");
+//        cv::Mat dst;
+//        cv::normalize(nn.layers[0].w, dst, 0, 1, cv::NORM_MINMAX);
+//        dst = dst.reshape(std::get<2>(imageDimension), std::get<0>(imageDimension));
+//        cv::imshow("result",dst);
+//        cv::waitKey(0);
 
         for (int i = 0; i < validationPredY.rows; i++) {
             validationActualY.push_back(getActualY(validationPredY.row(i), dataset, 60));
             validationOriginalImage.push_back(dataset[i].filename);
             modelWriter.write("image", validationActualY.back(), validationOriginalImage.back(), 0);
         }
+
+        std::printf("Showing output comparison");
+        cv::Mat dst;
+        cv::Mat dst2;
+        cv::normalize(validationPredY, dst, 0, 1, cv::NORM_MINMAX);
+        cv::normalize(validationY, dst2, 0, 1, cv::NORM_MINMAX);
+        cv::hconcat(dst,dst2,dst);
+        debug::ImshowMatrixDisplayer(dst, std::tuple<int, int, int>(0, 0, 0), 2, true, false);
 
         printf("done");
         return 0;
