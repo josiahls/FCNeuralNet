@@ -101,7 +101,7 @@ public slots:
                         std::cout << " Loading image " << temp << std::endl;
                         p.load(s);
                         filenames.push_back(s);
-                        p = p.scaled(500, 500);
+                        p = p.scaled(300, 300);
 //                        QPixmap p(s);
 //                        QPixmap image("/Users/jlaivins/CLionProjects/NeuralNetDemo/data/steering_dataset/training/images/0027.jpg");
 //                        p.scaledToHeight(300);
@@ -134,7 +134,7 @@ public slots:
                 m_label->setText(title.c_str());
                 // Update the image / video
                 p.load(filenames.at(lineNumber));
-                p = p.scaled(500, 500);
+                p = p.scaled(300, 300);
                 m_videoLabel->setPixmap(p);
             }
             // Needs a minimum sleep rate, otherwise closes strangely
