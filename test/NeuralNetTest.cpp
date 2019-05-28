@@ -35,9 +35,9 @@ TEST(NeuralNet, NeuralNetTrainRMSETest) {
 
 TEST(NeuralNet, NeuralNetMinimizeAdamTest) {
     NeuralNet nn = NeuralNet();
-    nn.addLayer(2, 3, 0, "middle");
-    nn.addLayer(3, 1, 0, "middle");
-    nn.addLayer(1, 1, 0, "middle");
+    nn.addLayer(2, 3, 0, "middle", "sigmoid");
+    nn.addLayer(3, 1, 0, "middle", "sigmoid");
+    nn.addLayer(1, 1, 0, "middle", "sigmoid");
 
     cv::Mat scaledX = (cv::Mat_<float>(3, 2) << 0.3, 0.5, 0.5, 0.1, 1, 0.2);
     cv::Mat scaledY = (cv::Mat_<float>(3, 1) << 0.75, 0.82, 0.93);
@@ -64,9 +64,9 @@ TEST(NeuralNet, NeuralNetMinimizeAdamTest) {
 
 TEST(NeuralNet, NeuralNetCostFunctionPrimeTest) {
     NeuralNet nn = NeuralNet();
-    nn.addLayer(2, 3, 0, "middle");
-    nn.addLayer(3, 1, 0, "middle");
-    nn.addLayer(1, 1, 0, "middle");
+    nn.addLayer(2, 3, 0, "middle", "sigmoid");
+    nn.addLayer(3, 1, 0, "middle", "sigmoid");
+    nn.addLayer(1, 1, 0, "middle", "sigmoid");
 
     cv::Mat scaledX = (cv::Mat_<float>(3, 2) << 0.3, 0.5, 0.5, 0.1, 1, 0.2);
     cv::Mat scaledY = (cv::Mat_<float>(3, 1) << 0.75, 0.82, 0.93);
@@ -87,9 +87,9 @@ TEST(NeuralNet, NeuralNetCostFunctionPrimeTest) {
 
 TEST(NeuralNet, NeuralNetCostFunctionTest) {
     NeuralNet nn = NeuralNet();
-    nn.addLayer(2, 3, 0, "middle");
-    nn.addLayer(3, 1, 0, "middle");
-    nn.addLayer(1, 1, 0, "middle");
+    nn.addLayer(2, 3, 0, "middle", "sigmoid");
+    nn.addLayer(3, 1, 0, "middle", "sigmoid");
+    nn.addLayer(1, 1, 0, "middle", "sigmoid");
 
     cv::Mat scaledX = (cv::Mat_<float>(3, 2) << 0.3, 0.5, 0.5, 0.1, 1, 0.2);
     cv::Mat scaledY = (cv::Mat_<float>(3, 1) << 0.75, 0.82, 0.93);

@@ -1,29 +1,12 @@
-#include <utility>
-
-//
-// Created by Laivins, Josiah on 2019-03-05.
-//
-
-// For viewing a matrix contents
-//        std::vector<double> actVect;
-//        for(int i=0; i<predY.rows; ++i)
-//            for(int j=0; j<predY.cols; ++j)
-//                actVect.push_back(predY.at<float>(i, j));
-
-// For displaying the matrix as an image
-//            std::printf("\nShowing weight output comparison");
-//            cv::Mat dst;
-//            cv::normalize(delta , dst, 0, 1, cv::NORM_MINMAX);
-//            cv::imshow("result",dst);
-//            cv::waitKey(30);
 
 #ifndef NEURALNETDEMO_NEURALNET_H
 #define NEURALNETDEMO_NEURALNET_H
 
+#include <utility>
 #include <iostream>
 #include <vector>
-#include "../utils/DebugHelpers.h"
 #include "../layers/Layer.h"
+#include "../utils/DebugHelpers.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv/cxmisc.h>
 #include "opencv2/core.hpp"
@@ -41,38 +24,44 @@ public:
     vector<float> rmse;
     vector<float> rmseValidate;
     vector<float> cost;
-    int maxY;
-    int maxX;
 
-    NeuralNet() {
-        this->layers = vector<Layer>();
-        this->rmse = vector<float>();
-        this->rmseValidate = vector<float>();
-        this->cost = vector<float>();
-        this->maxY = 0;
-        this->maxX = 0;
-    };
+    /**
+     * Initializes a neural net instance. Next step is calling the add layer methods for the creatign the net.
+     */
+    NeuralNet();;
 
-    cv::Mat predict(const cv::Mat &x) {
-        cv::Mat y = forward(x);
-        return y;
-    };
+    /**
+     * Based on an input matrix N x D where N is the number of samples, and D is the number of features,
+     * output the predicted y values. As a note, the input needs to be normalized, and the output needs to be
+     * unnormlized.
+     *
+     * @param x The input matrix composed of samples N x D where N is the number of samples, and D is the number
+     * of features
+     * @return A matrix of predicted y values.
+     */
+    cv::Mat predict(const cv::Mat &x);;
 
-    double costFunction(const cv::Mat &x, const cv::Mat &y) {
-        // FORMULA 3: J = sum((1/2) * (y - y_hat)^2)
-        cv::Mat predY = forward(x);
+    /**
+     * Uses the formula sum((1/2) * (y - y_hat)^2) for outputting the total "incorrectness" of the neural net.
+     *
+     * @param x An input x matrix composed of samples N x D where N is the number of samples, and D is the number
+     * of features
+     * @param y Actual y values composed of samples N x K where N is the number of samples, and K is the number
+     * of features
+     * @return A single double scalar representing the cost J
+     */
+    double costFunction(const cv::Mat &x, const cv::Mat &y);
 
-        cv::Mat subtractionToPower;
-        cv::pow(predY - y, 2, subtractionToPower);
-        std::vector<float> prediction = debug::unwrapMat(predY);
-        std::vector<float> acty = debug::unwrapMat(y);
-        std::vector<float> subtopow = debug::unwrapMat(subtractionToPower);
-
-        float summation = static_cast<float>(cv::sum(subtractionToPower)[0]) * 0.5f;
-//        debug::print(subtopow);
-        return summation;
-    }
-
+    /**
+     * Do a single epoch of training on a given x and y samples.
+     *
+     * @param x An input x matrix composed of samples N x D where N is the number of samples, and D is the number
+     * of features
+     * @param y Actual y values composed of samples N x K where N is the number of samples, and K is the number
+     * of features
+     * @param numIterations Number of iterations for the optimizer to follow
+     * @param batchSize Currently not used. This is being taken care of by the executing code.
+     */
     void train(const cv::Mat &x, const cv::Mat &y, int numIterations = 15000, int batchSize = -1) {
         vector<float> paramsInitial = unwrap();
         vector<float> unwrappedV = costFunctionPrime(x, y);
@@ -84,6 +73,15 @@ public:
         }
     }
 
+    /**
+     * Logs the RMSE of the given x and y samples, and saves them into an internal vector tracked by the neural net
+     * instance.
+     *
+     * @param x An input x matrix composed of samples N x D where N is the number of samples, and D is the number
+     * of features
+     * @param y Actual y values composed of samples N x K where N is the number of samples, and K is the number
+     * of features
+     */
     void logRMSE(const cv::Mat &x, const cv::Mat &y) {
         cv::Mat predY = forward(x);
         // Calc the RMSE
@@ -93,114 +91,83 @@ public:
         rmse.emplace_back(locRMSE);
     }
 
-    void logBatchRMSE(const cv::Mat &predY, const cv::Mat &y) {
-        cv::Scalar scalarMean = cv::mean(predY - y);
-        float locRMSE = cv::sqrt(cv::pow((float)scalarMean[0], 2.f));
-        // Log that RMSE
-        rmse.emplace_back(locRMSE);
-    }
+    /**
+     * Different from logRMSE in that this is to be executed after running through all of the batches.
+     * The goal here is to log a more accurate represention of the error the model produces.
+     *
+     * @param predY The predicted y values.
+     * @param y Actual y values composed of samples N x K where N is the number of samples, and K is the number
+     * of features
+     */
+    void logBatchRMSE(const cv::Mat &predY, const cv::Mat &y);
 
-    void logBatchRMSEValidation(const cv::Mat &predY, const cv::Mat &y) {
+    /**
+     * Different from logRMSE in that this is to be executed after running through all of the batches.
+     * Main difference between this and logBatchRMSE is that this validation RMSE will be saved in a rmseValidate field.
+     * The goal here is to log a more accurate represention of the error the model produces.
+     *
+     * @param predY The predicted y values.
+     * @param y Actual y values composed of samples N x K where N is the number of samples, and K is the number
+     * of features
+     */
+    void logBatchRMSEValidation(const cv::Mat &predY, const cv::Mat &y);
 
-        cv::Mat subMat;
-        cv::subtract(predY, y, subMat);
-        cv::Scalar scalarMean = cv::mean(subMat);
-        float locRMSE = cv::sqrt(cv::pow((float)scalarMean[0], 2.f));
-        // Log that RMSE
-        rmseValidate.emplace_back(locRMSE);
-    }
+    /**
+     * Outputs the gradients of all the parameters in the neural net given an x and y sample input.
+     *
+     * @param x An input x matrix composed of samples N x D where N is the number of samples, and D is the number
+     * of features
+     * @param y Actual y values composed of samples N x K where N is the number of samples, and K is the number
+     * of features
+     * @return A vector representing the gradients of all the parameters in all the layers. Used for optimizers.
+     */
+    vector<float> costFunctionPrime(const cv::Mat &x, const cv::Mat &y);
 
-
-    vector<float> costFunctionPrime(const cv::Mat &x, const cv::Mat &y) {
-
-        cv::Mat predY = forward(x);
-        std::vector<float> prediction = debug::unwrapMat(predY);
-        std::vector<float> actual = debug::unwrapMat(y);
-        cv::Mat delta;
-        bool started = false;
-
-        for (unsigned long i = layers.size() - 1; i > 0; i--) {
-            if (!started) {
-                cv::Mat activation = layers.at(i).getActivationPrime(layers.at(i).z);
-                cv::Mat difference;
-                cv::subtract(y, predY, difference);
-                std::vector<float> diff = debug::unwrapMat(difference);
-                std::vector<float> act = debug::unwrapMat(activation);
-                cv::multiply(difference, activation, delta);
-                delta = -1 * delta;
-                started = true;
-
-
-            } else {
-                cv::Mat activation = layers.at(i).getActivationPrime(layers.at(i).z);
-                cv::Mat transposedW;
-                cv::transpose(layers.at(i).w, transposedW);
-                std::vector<float> del = debug::unwrapMat(delta);
-                delta = delta * transposedW;
-
-                cv::multiply(delta, activation, delta);
-            }
-
-            std::vector<float> del = debug::unwrapMat(delta);
-            cv::Mat transposedActivation;
-            cv::transpose(layers.at(i - 1).a, transposedActivation);
-            std::vector<float> ta = debug::unwrapMat(transposedActivation);
-            cv::Mat gradient = transposedActivation * delta; // Buggy multiplication (kills negatives?)
-//            cv::Mat gradient;
-//            cv::multiply(transposedActivation, delta, gradient);
-            std::vector<float> grad = debug::unwrapMat(gradient);
-            layers.at(i - 1).gradientW = gradient;
-            std::vector<float> gradw = debug::unwrapMat(gradient);
-        }
-
-        return unwrapGradients();
-    }
-
+    /**
+     * Handles adding a layer to the neural net.
+     *
+     * @param size Number of neurons in the layer
+     * @param nextLayerSize The number of neuron in the next layer.
+     * @param seed The random seed for weight initialization.
+     * @param randomWeightMode The randomization method.
+     * @param activation The activation type. Currently either "tanh" or "sigmoid"
+     */
     void addLayer(int size, int nextLayerSize, int seed = -1,
-            std::string randomWeightMode = "", std::string activation = "") {
-        layers.emplace_back(Layer(size, nextLayerSize,seed, std::move(randomWeightMode), activation));
-    }
+            std::string randomWeightMode = "", std::string activation = "");
 
-    cv::Mat forward(const cv::Mat &xScaled) {
-        layers[0].getForwardOutput(xScaled);
-        layers[0].a = xScaled;
+    /**
+     * Pushes an x input through the neural net, and outputs the predicted y value.
+     *
+     * @param xScaled An input x matrix composed of samples N x D where N is the number of samples, and D is the number
+     * of features
+     * @return Predicted y values composed of samples N x K where N is the number of samples, and K is the number
+     * of features
+     */
+    cv::Mat forward(const cv::Mat &xScaled);;
 
-        cv::Mat testA = layers[0].a;
-        cv::Mat testW = layers[0].w;
-        cv::Mat nextZ = layers[0].a * layers[0].w;
+    /**
+     * Unwraps the neural net's parameters into a single floating point vector.
+     *
+     * @param start Which layer to start unwrapping the parameters.
+     * @return Unwrapped parameters of the neural net. These represent the weights of the layers.
+     */
+    vector<float> unwrap(int start=0);
 
-        for(int i = 1; i < layers.size(); i++) {
-            nextZ = layers[i].getForwardOutput(nextZ);
-        }
+    /**
+     * Unwraps the gradients of the parameters in the neural net into a single floating point vector.
+     *
+     * @return Unwrapped parameter gradients of the neural net. These represent how much each parameter is supposed to
+     * change.
+     */
+    vector<float> unwrapGradients();
 
-        cv::Mat predictedY = layers[layers.size()-1].a;
-        std::vector<float> pry = debug::unwrapMat(predictedY);
-//        debug::ImshowMatrixDisplayer(predictedY, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
-        return predictedY;
-    };
-
-    vector<float> unwrap(int start=0) {
-        vector<float> params;
-        for (int i = start; i < layers.size() - 1; i++) {
-            for (int j = 0; j < layers[i].w.rows; j++) {
-                params.insert(params.end(), layers[i].w.ptr<float>(j), layers[i].w.ptr<float>(j)+layers[i].w.cols);
-            }
-        }
-        return params;
-    }
-
-    vector<float> unwrapGradients() {
-        vector<float> params;
-        for (int i = 0; i < layers.size()-1; i++) {
-
-            for (int j = 0; j < layers[i].gradientW.rows; j++) {
-                params.insert(params.end(), layers[i].gradientW.ptr<float>(j),
-                        layers[i].gradientW.ptr<float>(j)+layers[i].gradientW.cols);
-            }
-        }
-        return params;
-    }
-
+    /**
+     * Wraps a vector of parameters into the neural net. It is important for the neural net to have the same shape
+     * as what the vectors are expecting.
+     *
+     * @param params A vector of floating point values representing the weights of the neurons of the layers in the
+     * neural net.
+     */
     void wrap(vector<float> params) {
 
         vector<float>::const_iterator first;
@@ -223,64 +190,17 @@ public:
         }
     }
 
-    void minimizeAdamOptimizer(vector<float> grad, const cv::Mat &x, const cv::Mat &y, int numIterations = 15000) {
-        float alpha = 0.0001;
-        float beta1 = 0.9;
-        float beta2 = 0.999;
-        float epsilon = 0.00000001;
-
-        vector<float> m0 = vector<float>(grad.size(), 0);
-        vector<float> v0 = vector<float>(grad.size(), 0);
-        float t = 0.0;
-
-        vector<float> mt = vector<float>(grad.size(), 0);
-        vector<float> vt = vector<float>(grad.size(), 0);
-
-        for (int i = 0; i < numIterations; i++) {
-            t++;
-            vector<float> gradients = costFunctionPrime(x, y);
-
-            // Calc mt
-            cv::multiply(beta1, mt, mt);
-            vector<float> temp;
-            cv::multiply((1 - beta1), gradients, temp);
-            cv::add(mt, temp, mt);
-            // Calc vt
-            cv::multiply(beta2, vt, vt);
-            cv::pow(gradients, 2, gradients);
-            cv::multiply((1 - beta2), gradients, temp);
-            cv::add(vt, temp, vt);
-            // Calc mtHat
-            vector<float> mtHat;
-            cv::divide(mt, (1 - pow(beta1, t)), mtHat);
-            // Calc vtHat
-            vector<float> vtHat;
-            cv::divide(vt, (1 - pow(beta2, t)), vtHat);
-            // Calc newParams
-            vector<float> params = unwrap();
-            vector<float> alphaMtHat;
-            vector<float> sqrtVtHat;
-            vector<float> sqrtVtHatPlusEpsilon;
-            vector<float> divideAlphaMtHatSqrtVtHatPlusEpsilon;
-
-            cv::multiply(alpha, mtHat, alphaMtHat);
-            cv::sqrt(vtHat, sqrtVtHat);
-            cv::add(sqrtVtHat, epsilon, sqrtVtHatPlusEpsilon);
-
-            vector<float> newParams;
-//            debug::ImshowMatrixDisplayer(this->layers[0].w, std::tuple<int, int, int>(0, 0, 900), 5.5, false, true);
-//            debug::unwrapMat(this->layers[0].w);
-//            debug::unwrapMat(this->layers[1].w);
-            cv::divide(alphaMtHat, sqrtVtHatPlusEpsilon, divideAlphaMtHatSqrtVtHatPlusEpsilon);
-            cv::subtract(params, divideAlphaMtHatSqrtVtHatPlusEpsilon, newParams);
-//            debug::ImshowMatrixDisplayer(newParams, std::tuple<int, int, int>(0, 0, 900), 5.5, false, true);
-            // Wrap the new weights
-            wrap(newParams);
-
-            // Log the cost
-            cost.emplace_back(costFunction(x, y));
-        };
-    }
+    /**
+     * The Adam optimizer. Found from https://github.com/sagarvegad/Adam-optimizer/blob/master/Adam.py
+     *
+     * @param grad The parameter gradients.
+     * @param x An input x matrix composed of samples N x D where N is the number of samples, and D is the number
+     * of features
+     * @param y Actual y values composed of samples N x K where N is the number of samples, and K is the number
+     * of features
+     * @param numIterations Number of iterations. Be careful, we don't want to over optimize if doing batch training.
+     */
+    void minimizeAdamOptimizer(vector<float> grad, const cv::Mat &x, const cv::Mat &y, int numIterations = 15000);
 };
 
 #endif //NEURALNETDEMO_NEURALNET_H

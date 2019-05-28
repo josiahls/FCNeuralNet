@@ -55,10 +55,30 @@ public:
      */
     cv::Mat getWeightInitialization(Dimension dimension, std::string mode = "");
 
+    /**
+     * Updates the current activating values z and the activation a.
+     *
+     * @param z Values being used to currently activate the layer
+     * @return The dot product of the activation matrix and weight matrix
+     */
     cv::Mat getForwardOutput(cv::Mat z);
 
+    /**
+     * Gets the activation of a given z. Determined by the activationType
+     * defined during the layer's creation.
+     *
+     * @param z Values being used to currently activate the layer
+     * @return The activation
+     */
     cv::Mat getActivation(cv::Mat z);
 
+    /**
+     * Gets the activation prime of a given z. Determined by the activationType
+     * defined during the layer's creation.
+     *
+     * @param z Values being used to currently activate the layer
+     * @return The activation prime.
+     */
     cv::Mat getActivationPrime(cv::Mat z);
 
     cv::Mat getActivationTanh(cv::Mat z);

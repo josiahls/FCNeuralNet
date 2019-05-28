@@ -28,11 +28,6 @@
 #include <QTimer>
 #include <QtConcurrent>
 
-//QT_CHARTS_BEGIN_NAMESPACE
-//class QXYSeries;
-//QT_CHARTS_END_NAMESPACE
-//QT_CHARTS_USE_NAMESPACE
-
 class LogImageFileReader : public QObject {
     Q_OBJECT
 public:
@@ -47,6 +42,8 @@ public:
     }
 
 public slots:
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
     void process() {
         // If the file cannot be opened, then return
         QFile file(this->m_logFilePath);
@@ -141,6 +138,7 @@ public slots:
             QThread::msleep(50);
         }
     }
+#pragma clang diagnostic pop
 
 signals:
     void finished();

@@ -27,20 +27,19 @@ set(CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_RELEASE} -fprofile-arcs -ftest-c
 set_target_properties(Qt5::Core PROPERTIES MAP_IMPORTED_CONFIG_COVERAGE "RELEASE")
 
 set(SRC_FILES
+        ${PROJECT_SOURCE_DIR}/src/utils/DebugHelpers.cpp
         ${PROJECT_SOURCE_DIR}/main.cpp
         ${PROJECT_SOURCE_DIR}/src/executables/VisualizationBoard.cpp
         ${PROJECT_SOURCE_DIR}/src/nn/NeuralNet.cpp
         ${PROJECT_SOURCE_DIR}/src/layers/Dimension.h
         ${PROJECT_SOURCE_DIR}/src/layers/Layer.cpp
-        ${PROJECT_SOURCE_DIR}/src/utils/DatasetCar.h
         ${PROJECT_SOURCE_DIR}/src/utils/BoardWriter.cpp
         ${PROJECT_SOURCE_DIR}/src/utils/Logger.cpp
-        ${PROJECT_SOURCE_DIR}/src/utils/DebugHelpers.h
+        ${PROJECT_SOURCE_DIR}/src/utils/DatasetCar.cpp
         ${PROJECT_SOURCE_DIR}/src/executables/NeuralNetRun.cpp
         ${PROJECT_SOURCE_DIR}/src/ui/LogImageFileReader.cpp
         ${PROJECT_SOURCE_DIR}/src/ui/LogFileReader.cpp
         ${PROJECT_SOURCE_DIR}/src/ui/ChartLogWidget.cpp
-        ${PROJECT_SOURCE_DIR}/src/ui/xyseriesiodevice.cpp
         ${PROJECT_SOURCE_DIR}/src/ui/ImageLogWidget.cpp)
 
 add_executable(NeuralNetDemo ${SRC_FILES})

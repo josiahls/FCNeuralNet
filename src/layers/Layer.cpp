@@ -1,9 +1,9 @@
-#include <utility>
 
 //
 // Created by Laivins, Josiah on 2019-03-07.
 //
 
+#include <utility>
 #include <string>
 #include <random>
 #include <opencv2/core/mat.hpp>

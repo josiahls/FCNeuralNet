@@ -11,7 +11,6 @@
 #include <QFile>
 #include <QProcess>
 #include <QFuture>
-#include "xyseriesiodevice.h"
 #include "LogImageFileReader.h"
 
 #include <QtWidgets/QVBoxLayout>

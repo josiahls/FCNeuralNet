@@ -6,7 +6,6 @@
 #define NEURALNETDEMO_LOGWIDGET_H
 
 #include "LogFileReader.h"
-#include "xyseriesiodevice.h"
 #include <QtMultimedia/QAudioDeviceInfo>
 #include <QtMultimedia/QAudioInput>
 
@@ -20,7 +19,6 @@
 #include <QFile>
 #include <QProcess>
 #include <QFuture>
-#include "xyseriesiodevice.h"
 
 #include <QtWidgets/QVBoxLayout>
 #include <QTextStream>

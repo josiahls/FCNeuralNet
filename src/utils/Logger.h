@@ -2,8 +2,8 @@
 // Created by Laivins, Josiah on 2019-04-01.
 //
 
-#ifndef NEURALNETDEMO_HELPERS_H
-#define NEURALNETDEMO_HELPERS_H
+#ifndef NEURALNETDEMO_LOGGER_H
+#define NEURALNETDEMO_LOGGER_H
 
 #include <stdio.h>  /* defines FILENAME_MAX */
 // From: https://stackoverflow.com/questions/143174/how-do-i-get-the-directory-that-a-program-is-running-from
@@ -27,63 +27,35 @@ using namespace cv::utils::fs;
 class Logger {
 
 public:
-    static std::string getCurrentPath(){
-        char cCurrentPath[FILENAME_MAX];
+    /**
+     * Gets current absolute path to the project.
+     *
+     * Path is found using OpenCV file io API.
+     *
+     * @return string representing the absolute path.
+     */
+    static std::string getCurrentPath();
 
-        // Verify that getting the current path is possible
-        if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
-        {
-            printf("Unable to acquire current path");
-        }
+    /**
+     * Gets the full absolute path to the log directory.
+     *
+     * @param rootLogDirName The directory name of the log directory.
+     * @return string representing the absolute path.
+     */
+    static std::string getLogPath(cv::String rootLogDirName = "logs");
 
-        cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
-
-        if (!cv::utils::fs::exists(cv::String(cCurrentPath))) {
-            throw "The current directory cannot be resolved.";
-        }
-
-        return std::string(cCurrentPath);
-    }
-
-    static std::string getLogPath(cv::String rootLogDirName = "logs") {
-        std::string currentPath = getCurrentPath();
-        std::string::size_type index = currentPath.rfind(projectRootName);
-        std::string projectPath = currentPath.substr(0, index + projectRootName.size() + 1);
-        std::string projectLogPath(projectPath + rootLogDirName);
-
-        // As a note, the cv::String constructor, maybe based on the version I am using,
-        // requires character arrays
-        if (!exists(projectLogPath.c_str())) {
-            printf("\nMissing log directory. Making.");
-            cv::utils::fs::createDirectory(projectPath + rootLogDirName);
-        }
-
-        return projectLogPath;
-    }
-
-    static std::vector<cv::String> getLogDirs(cv::String rootLogDirName = "logs", std::string subFolder = "") {
-        cv::String folder = rootLogDirName;
-        if (rootLogDirName.find('/') == std::string::npos) {
-            folder = Logger::getLogPath(rootLogDirName);
-        }
-
-        if (subFolder != "") {
-            if (subFolder.find('/') == std::string::npos || subFolder.find('\\') == std::string::npos) {
-                folder = subFolder;
-            } else {
-                folder = join(folder, subFolder);
-            }
-        }
-
-        std::vector<cv::String> filenames;
-
-        glob(folder, "", filenames, false, true); // new function that does the job ;-)
-        return filenames;
-    }
+    /**
+     * Gets the absolute paths to the individual log folders in the log directory.
+     *
+     * @param rootLogDirName Name of the log directory.
+     * @param subFolder If specified, will return the full path to a specific log folder.
+     * @return A vector of all, or a specific path to the log directory.
+     */
+    static std::vector<cv::String> getLogDirs(cv::String rootLogDirName = "logs", std::string subFolder = "");
 
     static cv::String projectRootName;
 };
 
 
 
-#endif //NEURALNETDEMO_HELPERS_H
+#endif //NEURALNETDEMO_LOGGER_H

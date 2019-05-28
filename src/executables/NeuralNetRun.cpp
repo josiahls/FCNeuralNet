@@ -150,7 +150,6 @@ namespace nn {
         return (acc / absOfAngles.cols) * 100;
     }
 
-
     int train(int argc, char **argv) {
         printf("Running Neural Net Run");
         // Load dataset
@@ -205,16 +204,12 @@ namespace nn {
                     try {
                         batchX.push_back(getImage(trainDataset, imageLoc));
                         batchY.push_back(getGuassianBinnedY(getBinnedY(getNormalY(trainDataset, imageLoc), 60), 3));
-//                        batchY.push_back(getNormalY(trainDataset, imageLoc));
                     } catch(cv::Exception) {
                         printf("Derp something happened");
                     }
                 }
-                printf("here1");
                 y.push_back(batchY);
-                printf("here2");
                 predY.push_back(nn.forward(batchX));
-//                debug::ImshowMatrixDisplayer(nn.layers[1].w, std::tuple<int, int, int>(0, 0, 0), 5.5, True, false);
 
                 try {
                     nn.train(batchX, batchY, 3 * batchSize, batchSize);
@@ -224,11 +219,8 @@ namespace nn {
 
                 std::vector<float> prediction = debug::unwrapMat(nn.predict(batchX));
                 std::vector<float> actual = debug::unwrapMat(batchY);
-//                debug::ImshowMatrixDisplayer(nn.layers[0].w, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
 
             }
-//            debug::ImshowMatrixDisplayer(nn.layers[0].w, imageDimension, 5.5, true, true);
-//            debug::ImshowMatrixDisplayer(nn.layers[1].w, std::tuple<int, int, int>(0, 0, 0), 5.5, false, false);
 
             y.copyTo(finalY);
             predY.copyTo(finalPredY);
@@ -260,8 +252,6 @@ namespace nn {
         cv::normalize(finalY, dst2, 0, 1, cv::NORM_MINMAX);
         cv::hconcat(dst,dst2,dst);
         debug::ImshowMatrixDisplayer(dst, std::tuple<int, int, int>(0, 0, 0), 2, true, false);
-
-
 
         return 0;
     }
