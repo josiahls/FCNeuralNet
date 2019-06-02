@@ -251,7 +251,7 @@ namespace nn {
         cv::normalize(finalPredY, dst, 0, 1, cv::NORM_MINMAX);
         cv::normalize(finalY, dst2, 0, 1, cv::NORM_MINMAX);
         cv::hconcat(dst,dst2,dst);
-        debug::ImshowMatrixDisplayer(dst, std::tuple<int, int, int>(0, 0, 0), 2, true, false);
+//        debug::ImshowMatrixDisplayer(dst, std::tuple<int, int, int>(0, 0, 0), 2, true, false);
 
         return 0;
     }
@@ -322,13 +322,13 @@ namespace nn {
             modelWriter.write("image", validationActualY.back(), validationOriginalImage.back(), 0);
         }
 
-        std::printf("Showing output comparison");
-        cv::Mat dst;
-        cv::Mat dst2;
-        cv::normalize(validationPredY, dst, 0, 1, cv::NORM_MINMAX);
-        cv::normalize(validationY, dst2, 0, 1, cv::NORM_MINMAX);
-        cv::hconcat(dst,dst2,dst);
-        debug::ImshowMatrixDisplayer(dst, std::tuple<int, int, int>(0, 0, 0), 2, true, false);
+//        std::printf("Showing output comparison");
+//        cv::Mat dst;
+//        cv::Mat dst2;
+//        cv::normalize(validationPredY, dst, 0, 1, cv::NORM_MINMAX);
+//        cv::normalize(validationY, dst2, 0, 1, cv::NORM_MINMAX);
+//        cv::hconcat(dst,dst2,dst);
+//        debug::ImshowMatrixDisplayer(dst, std::tuple<int, int, int>(0, 0, 0), 2, true, false);
 
         printf("done");
         return 0;

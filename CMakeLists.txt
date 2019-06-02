@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(NeuralNetDemo)
+project(FCNeuralNet)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -42,13 +42,13 @@ set(SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/ui/ChartLogWidget.cpp
         ${PROJECT_SOURCE_DIR}/src/ui/ImageLogWidget.cpp)
 
-add_executable(NeuralNetDemo ${SRC_FILES})
+add_executable(FCNeuralNet ${SRC_FILES})
 add_subdirectory(test)
 
 # Use the Widgets module from Qt 5
-target_link_libraries(NeuralNetDemo Qt5::Charts)
-target_link_libraries(NeuralNetDemo Qt5::Concurrent)
-target_link_libraries(NeuralNetDemo Qt5::Widgets)
+target_link_libraries(FCNeuralNet Qt5::Charts)
+target_link_libraries(FCNeuralNet Qt5::Concurrent)
+target_link_libraries(FCNeuralNet Qt5::Widgets)
 ##################################################
 
 # Enable C++11
@@ -70,4 +70,4 @@ message(STATUS "    libraries: ${OpenCV_LIBS}")
 message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 # Link your application with OpenCV libraries
-target_link_libraries(NeuralNetDemo ${OpenCV_LIBS})
+target_link_libraries(FCNeuralNet ${OpenCV_LIBS})

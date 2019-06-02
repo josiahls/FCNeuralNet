@@ -4,7 +4,7 @@
 
 #include "Logger.h"
 
-cv::String Logger::projectRootName = "NeuralNetDemo";
+cv::String Logger::projectRootName = "FCNeuralNet";
 
 std::string Logger::getCurrentPath() {
     char cCurrentPath[FILENAME_MAX];
@@ -28,13 +28,13 @@ std::string Logger::getLogPath(cv::String rootLogDirName) {
     std::string currentPath = getCurrentPath();
     std::string::size_type index = currentPath.rfind(projectRootName);
     std::string projectPath = currentPath.substr(0, index + projectRootName.size() + 1);
-    std::string projectLogPath(projectPath + rootLogDirName);
+    std::string projectLogPath = join(projectPath, rootLogDirName);
 
     // As a note, the cv::String constructor, maybe based on the version I am using,
     // requires character arrays
     if (!exists(projectLogPath.c_str())) {
         printf("\nMissing log directory. Making.");
-        cv::utils::fs::createDirectory(projectPath + rootLogDirName);
+        cv::utils::fs::createDirectory(projectLogPath);
     }
 
     return projectLogPath;

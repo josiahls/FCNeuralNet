@@ -64,7 +64,7 @@ public:
      * @param projectRoot The root to the project
      */
     DatasetCar(long readableSize=0, std::string csvName="steering_angles.csv",
-            std::string csvDir="steering_dataset/training", std::string projectRoot="NeuralNetDemo");
+            std::string csvDir="steering_dataset/training", std::string projectRoot="FCNeuralNet");
 
     /**
      * Returns the number of samples loaded.

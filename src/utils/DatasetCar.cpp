@@ -166,7 +166,8 @@ std::string DatasetCar::getDataPath() {
     std::string currentPath = getCurrentPath();
     std::string::size_type index = currentPath.rfind(projectRoot);
     std::string projectPath = currentPath.substr(0, index + projectRoot.size() + 1);
-    std::string projectDataPath(projectPath + "data");
+    std::string projectDataPath = join(projectPath, "data");
+
 
     // As a note, the cv::String constructor, maybe based on the version I am using,
     // requires character arrays
