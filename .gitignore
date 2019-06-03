@@ -66,12 +66,10 @@ data/steering_dataset/training/steering_angles.csv
 /test/cmake_install.cmake
 /test/test
 /FCNeuralNet_autogen/
-/res/
 CMakeFiles/
 bin/
 lib/
 models/
-res/
 test/CMakeFiles/
 test/googletest-build/
 test/googletest-download/
