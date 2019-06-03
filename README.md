@@ -14,11 +14,11 @@ contains a fully connected implementation. However using convolutional layers fo
 would most likely have better performance. 
 
 This repo contains:
- - Fully connected Layer
- - 2 Activation functions:
+ - Fully Connected Layer
+ - 2 Activation Functions:
      - Sigmoid
      - Tanh
- - Adam optimizer back prop
+ - Adam Optimizer back prop
  - QT visualization application
  
 As you will find in the `NeuralNetRun.cpp` file, I used tanh activation on 2 layer inputs.
