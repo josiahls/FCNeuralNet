@@ -8,7 +8,7 @@ I was motivated to convert this to C++ because I have always wanted a reason to 
 in C++. However most of the projects recently I have wanted to do required fast prototyping. This
 was an awesome opportunity since the Python implementation had so few dependencies to use.
 
-Neural Nets typically consist of stacked layers of neurons (the simply ones). There are many different
+Neural Nets typically consist of stacked layers of neurons (the simple ones). There are many different
 types of layer configurations such as convolutional, dropout, fully connected, etc. This repository only
 contains a fully connected implementation. However using convolutional layers for image machine learning
 would most likely have better performance. 
