@@ -137,14 +137,6 @@ with. This visualization object selects the most recent `log` directory, and loa
 Aaaand the end result should be something like this:
 ![](res/training_animation_smaller.gif)
 
-|   |
-|:---:|
-| ![this is something](res/activations.png)  |
-| |
-| *Fig 4: The actual model outputs (Left) have noise due to weight outputs. They gradually become clearer the more epochs are run. The input values (Right) have a gaussian distribution applied to them (hence instead of a single steering angle value, its a range.)*  |
-
-
-
 ## Project Structure
 ```bash
 .  # Should be FCNeuralNet
