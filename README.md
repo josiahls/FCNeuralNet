@@ -1,6 +1,6 @@
 ## Summary
 
-Fully connect neural network implementation for steering angle proposal based on image input.
+Fully connected neural network implementation for steering angle proposal based on image input.
 This was loosely adapted from [deep_learning](https://github.com/unccv/deep_learning) which I create
 a Python neural network from scratch (using numpy as the primary dependency).
 
