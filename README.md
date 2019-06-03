@@ -31,7 +31,7 @@ dependency, and leveraged its matrix manipulation functions and os file io opera
 
 * [Installation](#Installation)
 * [Running](#Running)
-* [Project Structure](#Project Structure)
+* [Project Structure](#Project-Structure)
 * [Links](#links)
 
 -----------------
