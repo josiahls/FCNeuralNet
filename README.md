@@ -65,13 +65,18 @@ Once done pull the repo from github:
 
 `cmake CMakeLists.txt` 
 or as I found out using my Mac, I needed to specify the direct path to 
-the correct cmake (default was 13.12.X), exeample path goes to the currect one:
+the correct cmake (default was 13.12.X), example path goes to the correct one:
 `/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/jlaivins/CLionProjects/FCNeuralNet`
 
 `make`
 
 Then Hurray! You installed it! This CMakeLists file also is fancy in that it will install
-Google Test for you! 
+Google Test for you! Maybe in the future I can move the Opencv install to the cmake. 
+
+As a note, I did not use windows because of the non-linux inputs and just generally not liking the operating system. 
+If you have issues / trying to install on windows, I can try the best I can to help, but honestly Linux/iOS seems of 
+more interest to me to support. Of course, if you get it to run on Windows, let me know the commands / issues / links 
+you used and I can add them to this README.
 
 ## Running
 
@@ -99,11 +104,45 @@ Feel free to go into `/src/executables/NeuralNetRun.cpp` and reference the `trai
 performance can be improved by changing the bin size (make larger), adding extra layers (more advanced features?),
 and adding more neurons.
 
+You might be interested in the output layer proposals. In the `train` and `run` method, there is commented out code 
+which runs either is done, will show a window with the raw outputs (kind of cool) (but also kind of ugly...).
+```c++
+std::printf("\nShowing weight output comparison");
+cv::Mat dst;
+cv::normalize(nn.layers[0].w, dst, 0, 1, cv::NORM_MINMAX);
+dst = dst.reshape(std::get<2>(imageDimension), std::get<0>(imageDimension));
+cv::imshow("result",dst);
+cv::waitKey(0);
+```
+
+Below is kind of what it looks like.
+
+|   |
+|:---:|
+| ![this is something](res/activations.png)  |
+| |
+| *Fig 4: The actual model outputs (Left) have noise due to weight outputs. They gradually become clearer the more epochs are run. The input values (Right) have a gaussian distribution applied to them (hence instead of a single steering angle value, its a range.)*  |
+
 `./FCNeuralNet -runNN`
 Also free to go into `/src/executables/NeuralNetRun.cpp` and reference the `run` method. However, this method
 will produce all the final runs for the visualizer so I would not really want to change much.
 
-`./FCNeuralNet -runVis`
+`./FCNeuralNet -runVis` 
+Directs to `/src/executables/VisualizationBoard.cpp` and you can reference the `run` method. However, unless you 
+plan to make changes to maybe how the code initializes, I would recommend using a Python approach that I plan to go 
+with. This visualization object selects the most recent `log` directory, and loads the most recent model from the 
+`models` directory, so I would recommend you write a python script / notebook that reads directly from there. 
+* Note, this will live read the graphs, but to load a model (get the nice video) you need to restart the visualizer.
+
+Aaaand the end result should be something like this:
+![](res/training_animation_smaller.gif)
+
+|   |
+|:---:|
+| ![this is something](res/activations.png)  |
+| |
+| *Fig 4: The actual model outputs (Left) have noise due to weight outputs. They gradually become clearer the more epochs are run. The input values (Right) have a gaussian distribution applied to them (hence instead of a single steering angle value, its a range.)*  |
+
 
 
 ## Project Structure
@@ -156,8 +195,21 @@ will produce all the final runs for the visualizer so I would not really want to
 ```
 
 ## Contribution guidelines
-
-## For more information
+I am most likely going to start a new repo building on this. There are a lot of things I plan to change such as:
+- Move NeuralNetRun methods into their own objects / make part of the NeuralNet object
+- Drop QT and use Python Jupyter or a Tensorboard log file maker (which means I could keep the project 100% C++)
+- Add Dropout Layers
+- Add bias (probably the first thing I would add besides better logging)
+- Add Convolutional Layers
+- Add ReLu and LeakyReLu activation functions to experiment with.
+- Remove "FCNeuralNet" constants from the writers and dataset objects. Use CMake to insert them as Macros
+    - Initially tried doing this, but did not want to spend a whole day working on something that really did not seem 
+    like as big of an issue and the 1000 other things I needed to work in.
+- Add more datasets
+    - I want to add MNIST and FashionMNIST
+    
+Feel free to do PRs / Forks of this repo. Let me know if there are any changes. If they are big,
+I might go ahead and jump start a new repo. For questions the issues tracker is always good.
 
 ## License
 
