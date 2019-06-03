@@ -39,7 +39,7 @@ dependency, and leveraged its matrix manipulation functions and os file io opera
 
 ## Installation
 
-This repo requires only 2 dependencies (I am be felicitous, both of these are massive).
+This repo requires only 2 dependencies (I am being felicitous, both of these are massive).
 - Opencv 3.4.3
 - QT 5.X (I used 5.12.1)
 
@@ -74,15 +74,16 @@ the correct cmake (default was 13.12.X), example path goes to the correct one:
 Then Hurray! You installed it! This CMakeLists file also is fancy in that it will install
 Google Test for you! Maybe in the future I can move the Opencv install to the cmake. 
 
-As a note, I did not use windows because of the non-linux inputs and just generally not liking the operating system. 
-If you have issues / trying to install on windows, I can try the best I can to help, but honestly Linux/iOS seems of 
+As a note, I did not use windows because of the non-Linux inputs and just generally not liking the operating system. 
+If you have issues / trying to install on Windows, I can try the best I can to help, but honestly Linux/iOS seems of 
 more interest to me to support. Of course, if you get it to run on Windows, let me know the commands / issues / links 
 you used and I can add them to this README.
 
 ## Running
 
 A few things before you can run this. You need to follow the Data section at 
-[deep_learning (the readme)](https://github.com/josiahls/deep_learning/tree/master/challenge).
+[deep_learning (the readme)](https://github.com/josiahls/deep_learning/tree/master/challenge) to download the data and the 
+CSV I used. You should be able to use any dataset, but that would mean creating your own dataset object.
 
 The data folder should have the structure:
 ```bash
@@ -106,7 +107,7 @@ performance can be improved by changing the bin size (make larger), adding extra
 and adding more neurons.
 
 You might be interested in the output layer proposals. In the `train` and `run` method, there is commented out code 
-which runs either is done, will show a window with the raw outputs (kind of cool) (but also kind of ugly...).
+which will show a window with the raw outputs (kind of cool) (but also kind of ugly...).
 ```c++
 std::printf("\nShowing weight output comparison");
 cv::Mat dst;
@@ -205,12 +206,12 @@ I am most likely going to start a new repo building on this. There are a lot of 
 - Add ReLu and LeakyReLu activation functions to experiment with.
 - Remove "FCNeuralNet" constants from the writers and dataset objects. Use CMake to insert them as Macros
     - Initially tried doing this, but did not want to spend a whole day working on something that really did not seem 
-    like as big of an issue and the 1000 other things I needed to work in.
+    like as big of an issue especially compared to the 1000 other things I needed to work on.
 - Add more datasets
     - I want to add MNIST and FashionMNIST
     
-Feel free to do PRs / Forks of this repo. Let me know if there are any changes. If they are big,
-I might go ahead and jump start a new repo. For questions the issues tracker is always good.
+Feel free to do PRs / Forks of this repo. Let me know if there are any bugs (I may or may not fix them here) / feature requests / changes. If they are big,
+I might go ahead and jump start a new repo. For questions, the issues tracker is always good.
 
 ## License
 
