@@ -121,7 +121,7 @@ Below is kind of what it looks like.
 |:---:|
 | ![this is something](res/activations.png)  |
 | |
-| *Fig 4: The actual model outputs (Left) have noise due to weight outputs. They gradually become clearer the more epochs are run. The input values (Right) have a gaussian distribution applied to them (hence instead of a single steering angle value, its a range.)*  |
+| *Fig 1: The actual model outputs (Left) have noise due to weight outputs. They gradually become clearer the more epochs are run. The input values (Right) have a gaussian distribution applied to them (hence instead of a single steering angle value, its a range.)*  |
 
 `./FCNeuralNet -runNN`
 Also free to go into `/src/executables/NeuralNetRun.cpp` and reference the `run` method. However, this method
@@ -135,7 +135,15 @@ with. This visualization object selects the most recent `log` directory, and loa
 * Note, this will live read the graphs, but to load a model (get the nice video) you need to restart the visualizer.
 
 Aaaand the end result should be something like this:
-![](res/training_animation_smaller.gif)
+
+
+
+|   |
+|:---:|
+| ![](res/training_animation_smaller.gif)  |
+| |
+| *Fig 2: These are the results based on the defaults found in the training code. I think I only wanted to wait for an hour. You can easily improve the results via more epochs, different batch sizes, more bins, and more layers.*  |
+
 
 ## Project Structure
 ```bash
