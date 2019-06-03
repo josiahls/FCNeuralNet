@@ -140,7 +140,7 @@ Aaaand the end result should be something like this:
 
 |   |
 |:---:|
-| ![](res/training_animation_smaller.gif)  |
+| ![](res/qt_viz.gif)  |
 | |
 | *Fig 2: These are the results based on the defaults found in the training code. I think I only wanted to wait for an hour. You can easily improve the results via more epochs, different batch sizes, more bins, and more layers.*  |
 
